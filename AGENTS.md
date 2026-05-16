@@ -86,7 +86,7 @@ Todos os agentes devem:
 - Trabalhar de forma colaborativa entre si.
 - Nunca modificar responsabilidades pertencentes a outro agente sem justificativa explícita.
 
-# Fluxo de Trabalho
+# Fluxo de Trabalho com Agentes
 
 Todos os agentes devem obrigatoriamente ler e seguir as especificações que serão colocadas no diretório `specs/` antes de iniciarem suas tarefas.
 
@@ -105,6 +105,15 @@ Documentador
 ```
 
 Cada agente deve produzir artefatos claros para o próximo agente, assegurando que todas as definições das especificações (specs) foram atendidas.
+
+## Regras de Execução para a IA (Prompting)
+
+Sempre que uma nova funcionalidade for solicitada, a IA DEVE transitar automaticamente pelos papéis nesta ordem estrita:
+1. **Arquiteto**: A IA deve criar um artefato de "Implementation Plan" detalhando a arquitetura e PARAR, exigindo aprovação do usuário.
+2. **Desenvolvedor**: Após aprovação, a IA assume como Desenvolvedor automaticamente, cria um arquivo "task.md" com o checklist e escreve o código-fonte.
+3. **QA e Revisor**: Terminando o código, a IA deve rodar os testes automatizados, verificar o próprio código contra o checklist do Revisor e gerar um artefato de "Walkthrough" com as validações.
+4. **Documentador**: Por fim, a IA cria/atualiza os arquivos dentro da pasta `docs/`.
+Nunca pule uma etapa. Sempre anuncie qual "chapéu" você está usando no momento.
 
 # Agente: Arquiteto
 
