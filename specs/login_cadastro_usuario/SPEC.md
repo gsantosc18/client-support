@@ -126,3 +126,4 @@ O login e cadastro devem seguir as seguintes regras:
 - a companhia deve ter uma data de criação
 - a companhia deve ter uma data de atualização
 - a companhia deve ter um status
+- Guardar as informações de configuração do serviço em arquivo yaml e carregar utilizando viper no backend.

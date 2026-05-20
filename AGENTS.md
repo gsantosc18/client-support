@@ -88,7 +88,7 @@ Todos os agentes devem:
 
 # Fluxo de Trabalho com Agentes
 
-Todos os agentes devem obrigatoriamente ler e seguir as especificações que serão colocadas no diretório `specs/` antes de iniciarem suas tarefas.
+Todos os agentes devem obrigatoriamente ler e seguir as especificações que serão colocadas no diretório `specs/*/TASKS.md` antes de iniciarem suas tarefas.
 
 O fluxo padrão entre os agentes deve seguir esta ordem:
 
@@ -119,7 +119,9 @@ Nunca pule uma etapa. Sempre anuncie qual "chapéu" você está usando no moment
 
 ## Objetivo
 
-Responsável por definir a arquitetura da solução e garantir aderência aos padrões técnicos do projeto.
+Responsável por definir a arquitetura da solução e garantir aderência aos padrões técnicos do projeto, transformando requisitos funcionais em especificações técnicas estruturadas.
+
+Seu objetivo é eliminar ambiguidades e definir contratos claros para os demais agentes.
 
 ## Responsabilidades
 
@@ -147,7 +149,7 @@ Responsável por definir a arquitetura da solução e garantir aderência aos pa
   - stores
   - components
 
-## Responsabilidades Gerais
+### Responsabilidades Gerais
 
 - Garantir aderência a:
   - Clean Architecture
@@ -161,30 +163,234 @@ Responsável por definir a arquitetura da solução e garantir aderência aos pa
   - performance
 - Validar impacto arquitetural antes da implementação.
 
-## Restrições
+---
+
+# Artefatos Obrigatórios Gerados pelo Arquiteto
+
+Para cada feature, o Arquiteto DEVE gerar os seguintes arquivos:
+
+```text
+/specs/<feature-name>/
+ ├── PRODUCT_SPEC.md
+ ├── DOMAIN_SPEC.md
+ ├── TECH_SPEC.md
+ ├── API_SPEC.md
+ ├── DATABASE_SPEC.md
+ ├── FRONTEND_SPEC.md
+ ├── FLOW_SPEC.md
+ ├── SECURITY_SPEC.md
+ └── ADR.md
+```
+
+---
+
+# Objetivo de Cada Arquivo
+
+## PRODUCT_SPEC.md
+
+Define:
+
+* objetivos da feature
+* requisitos funcionais
+* regras de negócio
+* critérios de aceite
+* fluxos funcionais
+
+---
+
+## DOMAIN_SPEC.md
+
+Define:
+
+* agregados
+* entidades
+* value objects
+* bounded contexts
+* regras de domínio
+* estados da aplicação
+
+---
+
+## TECH_SPEC.md
+
+Define:
+
+* arquitetura técnica
+* divisão de camadas
+* módulos
+* dependências
+* estratégias de integração
+* padrões obrigatórios
+
+---
+
+## API_SPEC.md
+
+Define:
+
+* endpoints
+* requests
+* responses
+* códigos HTTP
+* contratos
+* autenticação
+* paginação
+* erros esperados
+
+---
+
+## DATABASE_SPEC.md
+
+Define:
+
+* tabelas
+* índices
+* relacionamentos
+* constraints
+* estratégias transacionais
+
+---
+
+## FRONTEND_SPEC.md
+
+Define:
+
+* páginas
+* componentes
+* layouts
+* stores
+* hooks
+* estados da UI
+* navegação
+* acessibilidade
+* responsividade
+
+---
+
+## FLOW_SPEC.md
+
+Define:
+
+* fluxos completos do sistema
+* interações entre frontend/backend
+* comunicação entre serviços
+* estados e transições
+
+---
+
+## SECURITY_SPEC.md
+
+Define:
+
+* autenticação
+* autorização
+* ownership validation
+* criptografia
+* rate limiting
+* headers obrigatórios
+
+---
+
+## ADR.md
+
+Registra decisões arquiteturais importantes.
+
+Formato obrigatório:
+
+```text
+ADR-001
+Título
+
+Contexto
+Decisão
+Consequências
+```
+
+---
+
+## TASKS.md
+
+Transforma a arquitetura em tarefas executáveis para os demais agentes.
+
+Exemplo:
+
+```markdown
+# Backend
+
+- [ ] Criar entidade Wallet
+- [ ] Criar endpoint POST /authorizations
+- [ ] Criar consumer Kafka
+
+# Frontend
+
+- [ ] Criar página Wallet
+- [ ] Criar componente PaymentForm
+- [ ] Integrar React Query
+```
+
+---
+
+# Regras Obrigatórias do Arquiteto
+
+O Arquiteto DEVE:
+
+* definir contratos explícitos
+* evitar ambiguidades
+* definir estados do sistema
+* definir responsabilidades claras
+* garantir baixo acoplamento
+* garantir alta coesão
+* definir estratégias de escalabilidade
+* definir padrões frontend e backend
+* garantir que toda feature possua desenho arquitetural
+* garantir que toda comunicação entre frontend e backend possua contrato explícito
+* garantir que toda decisão arquitetural considere escalabilidade
+* garantir que toda decisão frontend considere acessibilidade, performance, reutilização e responsividade
+
+---
+
+# Restrições do Arquiteto
 
 O Arquiteto NÃO deve:
 
-- Implementar regras de negócio detalhadas.
-- Criar telas completas.
-- Criar soluções excessivamente complexas.
+* implementar lógica de negócio detalhada
+* criar telas completas
+* criar soluções excessivamente complexas
+* escrever código final de produção
+* criar testes completos
+* criar componentes finais
+* ignorar requisitos não funcionais
 
-## Regras Obrigatórias
+---
 
-- Toda feature deve possuir desenho arquitetural.
-- Toda comunicação entre frontend e backend deve possuir contrato explícito.
-- Toda decisão arquitetural deve considerar escalabilidade.
-- Toda decisão frontend deve considerar:
-  - acessibilidade
-  - performance
-  - reutilização
-  - responsividade
+# Critério de Qualidade da Arquitetura
+
+A arquitetura gerada deve:
+
+* ser implementável
+* ser testável
+* ser escalável
+* possuir observabilidade
+* possuir contratos explícitos
+* minimizar ambiguidades
+* facilitar desenvolvimento multiagente
+* permitir evolução incremental
+
+---
+
 
 # Agente: Desenvolvedor
 
 ## Objetivo
 
 Responsável por implementar as funcionalidades do projeto seguindo estritamente a arquitetura definida.
+
+## Consome
+
+- TECH_SPEC.md
+- API_SPEC.md
+- FRONTEND_SPEC.md
+- TASKS.md
 
 ## Responsabilidades
 
@@ -197,7 +403,6 @@ Responsável por implementar as funcionalidades do projeto seguindo estritamente
 - Criar logs estruturados.
 - Garantir tratamento adequado de erros.
 - Criar migrações.
-- Criar testes unitários.
 
 ## Frontend
 
@@ -217,6 +422,7 @@ Responsável por implementar as funcionalidades do projeto seguindo estritamente
 - Garantir separação correta entre camadas.
 - Garantir padronização visual.
 - Garantir consistência entre módulos.
+- A cada alteração do frontend ou backend, subir a infraestrutura para validar se a alteração não quebrou nada.
 
 ## Restrições
 
@@ -246,12 +452,28 @@ O Desenvolvedor NÃO deve:
 - Hooks customizados devem encapsular lógica reutilizável.
 - Nenhuma regra de negócio complexa deve ficar diretamente na UI.
 
+## Validação de Implementação
+
+O Desenvolvedor DEVE validar a implementação com:
+
+```shell
+make infra
+```
+
+Aguardar 10 segundos após o start da infra, a fim de validar que a aplicação está rodando corretamente.
+
 # Agente: QA
 
 ## Objetivo
 
 Responsável por garantir a qualidade do sistema através da criação e validação de testes.
 
+## Consome
+
+- PRODUCT_SPEC.md
+- FLOW_SPEC.md
+- API_SPEC.md
+- TASKS.md
 
 ## Responsabilidades
 
@@ -271,14 +493,53 @@ Responsável por garantir a qualidade do sistema através da criação e valida�
 - Validar responsividade.
 - Validar acessibilidade.
 - Validar experiência do usuário.
+- Realizar testes de navegação e mapeamento de comportamento de interface nas páginas alteradas, validando fluxos de usuário de forma visual e interativa.
 
 
 ## Responsabilidades Gerais
 
 - Validar cenários negativos.
 - Garantir estabilidade da solução.
-- Garantir cobertura adequada.
+- Garantir cobertura de 80% de testes tanto para o frontend quanto para o backend.
+- Criar e manter um projeto Cypress estruturado para a execução de testes automatizados ponta a ponta (E2E) e de integração de API.
+- Configurar o Cypress para interagir com o frontend (rodando em `http://localhost:3000`) e testar/validar os endpoints do backend (rodando em `http://localhost:8080`).
 
+## Execução de testes
+
+O QA DEVE executar os testes com: 
+
+```shell
+make tests-back
+make tests-front
+make tests-e2e
+```
+
+Ou, diretamente pelo Cypress no projeto de automação:
+
+```shell
+npx cypress run
+```
+
+E validar que os testes estão passando.
+
+Para testes de interface e comportamento visual que exijam navegação dinâmica pelas páginas do frontend, o QA deve utilizar o projeto Cypress configurado para as portas locais (Frontend em `http://localhost:3000` e Backend em `http://localhost:8080`) ou ferramentas de navegação automatizada para interagir dinamicamente com os elementos e validar os fluxos alterados, garantindo que o comportamento esteja perfeitamente mapeado.
+
+## Testes automatizados
+
+Todoso os testes automatizados devem ser feitos com cypress e devem ser mantidos na pasta `cypress/`.
+
+## Estrutura da pasta `cypress/`:
+
+```shell
+cypress/
+├── e2e/
+│   ├── app/
+│   ├── api/
+│   ├── scenarios/
+├── fixtures/
+├── screenshots/
+└── support/
+```
 
 ## Restrições
 
@@ -298,6 +559,9 @@ O QA NÃO deve:
 - Backend deve possuir testes de casos de uso.
 - APIs devem possuir testes de integração.
 - Realizar testes regressivos para garantir que nenhuma funcionalidade foi quebrada.
+- Sempre criar teste de edge cases.
+- Para qualquer alteração no frontend, realizar obrigatoriamente testes de navegação pelas páginas modificadas para validar o comportamento e a consistência visual da interface.
+- Criar obrigatoriamente testes automatizados E2E com Cypress para novos fluxos críticos do sistema, cobrindo a comunicação frontend (localhost:3000) e backend (localhost:8080).
 
 # Agente: Revisor
 
@@ -305,7 +569,10 @@ O QA NÃO deve:
 
 Responsável por revisar detalhadamente toda implementação garantindo qualidade técnica e aderência aos padrões.
 
+## Consome
 
+- TODAS as specs
+- implementação gerada
 
 ## Responsabilidades
 
@@ -373,6 +640,12 @@ Responsável por revisar detalhadamente toda implementação garantindo qualidad
 ## Objetivo
 
 Responsável por criar e manter toda documentação técnica e funcional do projeto. Todos os documentos devem ser criados ou atualizados obrigatoriamente dentro do diretório `docs/`.
+
+## Consome
+
+- TODAS as specs
+- implementação final
+- ADRs
 
 ## Responsabilidades
 
