@@ -1,0 +1,13 @@
+{
+  "name": "client-support-e2e",
+  "version": "1.0.0",
+  "description": "E2E Automated tests for Client Support",
+  "main": "index.js",
+  "scripts": {
+    "cypress:run": "cypress run",
+    "cypress:open": "cypress open"
+  },
+  "devDependencies": {
+    "cypress": "^13.8.1"
+  }
+}
