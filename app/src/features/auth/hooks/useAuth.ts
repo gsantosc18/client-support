@@ -13,7 +13,10 @@ export const useAuth = () => {
     setError(null);
     try {
       const response = await authService.login(data);
-      dispatch(setAuthTokens({ accessToken: response.access_token }));
+      dispatch(setAuthTokens({ 
+        accessToken: response.access_token,
+        keepMeLoggedIn: data.keep_me_logged_in
+      }));
       if (data.keep_me_logged_in) {
         localStorage.setItem('refreshToken', response.refresh_token);
       }

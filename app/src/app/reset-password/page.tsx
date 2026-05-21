@@ -58,7 +58,7 @@ function ResetPasswordForm() {
             </div>
           </div>
         ) : (
-          <form className="mt-8 space-y-6" onSubmit={onSubmit}>
+          <form className="mt-8 space-y-6" onSubmit={onSubmit} method="post">
             {error && (
               <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm font-medium border border-red-200">
                 {error}

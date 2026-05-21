@@ -37,7 +37,13 @@ Esta utilidade é empregada principalmente no interceptor de respostas do Axios 
 
 Foram implementados componentes agnósticos utilizando Tailwind CSS para manter a consistência visual:
 - **Button:** Botão com estados de hover suave, desabilitado e animação de carregamento (`isLoading prop` com Spinner SVG).
-- **Input:** Campo de formulário responsivo com animações CSS nos estados `:focus` e suporte completo a mensagens de erro estilizadas em vermelho.
+- **Input:** Campo de formulário responsivo com animações CSS nos estados `:focus` e suporte completo a mensagens de erro estilizadas em vermelho. *Nota de Estilo: Em conformidade com a regra de design de fundo claro e fonte escura, todas as classes de Dark Mode reversas (`dark:`) foram totalmente removidas do componente. O campo é renderizado sempre com fundo branco (`bg-white`) e texto escuro (`text-slate-900`), garantindo contraste ideal e eliminando regressões de legibilidade em qualquer tema do sistema.*
+
+---
+
+## Segurança e Semântica de Formulários
+
+Todos os formulários que transitam dados e credenciais sensíveis (Login, Cadastro de Usuário, Recuperação de Senha e Redefinição de Senha) utilizam explicitamente o atributo `method="post"` na tag `<form>`. Isso previne o comportamento padrão de submissão via `GET` do HTML5 e impede a exposição acidental de credenciais na barra de endereços (e no histórico do navegador) caso ocorra alguma falha na interrupção do envio de dados do lado do cliente (`preventDefault`).
 
 ---
 
@@ -45,8 +51,22 @@ Foram implementados componentes agnósticos utilizando Tailwind CSS para manter 
 
 1. **Acesso não logado:** O usuário inicia no `/login`. Pode navegar para `/register` ou `/forgot-password`.
 2. **Esqueci minha senha:** Em `/forgot-password`, após o envio do e-mail, se o usuário clicar no link recebido com o token, será redirecionado para `/reset-password?token=XXX`.
-3. **Pós-Login:** Após o login com sucesso, os tokens são recebidos. O `AccessToken` vai para o Redux State e o aplicativo redireciona o usuário para o `/dashboard`.
+3. **Pós-Login:** Após o login com sucesso, os tokens são recebidos. O `AccessToken` vai para o Redux State e é persistido de forma robusta no `localStorage` (se a opção "Manter-me logado" foi selecionada) ou no `sessionStorage` (comportamento padrão de aba). Isso previne a perda de sessão ao recarregar a página. O aplicativo então redireciona o usuário para `/clients`.
 4. **Pós-Cadastro:** Após sucesso em `/register`, o usuário é redirecionado de volta ao `/login?registered=true`, mostrando a tela de login.
+
+---
+
+## Persistência de Sessão e Hidratação
+
+Para evitar que o usuário seja desconectado e redirecionado para a página de login ao recarregar a página, implementamos um mecanismo híbrido de persistência e hidratação no Redux Store (`authStore.ts`):
+
+1. **Persistência Seletiva (Login)**:
+   - Se o usuário selecionar **"Manter-me logado"**, o `AccessToken` é persistido no `localStorage`.
+   - Se a opção estiver desmarcada, o `AccessToken` é armazenado no `sessionStorage` (destruído ao fechar a aba/navegador).
+2. **Hidratação Inicial**:
+   - Ao iniciar a aplicação (client-side), a store do Redux é hidratada automaticamente tentando ler o `AccessToken` de ambas as storages.
+3. **Limpeza Consistente**:
+   - Ao realizar logout voluntário ou receber uma resposta `401 Unauthorized` de qualquer endpoint protegido do backend, os tokens são limpos de forma consistente de ambas as storages (`localStorage` e `sessionStorage`).
 
 ---
 

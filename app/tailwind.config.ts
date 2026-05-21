@@ -5,9 +5,19 @@ const config: Config = {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/features/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
+      colors: {
+        brand: {
+          sand: "var(--color-brand-sand)",
+          sage: "var(--color-brand-sage)",
+          teal: "var(--color-brand-teal)",
+          cyan: "var(--color-brand-cyan)",
+          vibrant: "var(--color-brand-vibrant)",
+        },
+      },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":

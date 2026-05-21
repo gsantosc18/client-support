@@ -6,6 +6,11 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+  --color-brand-sand: #a6988a;
+  --color-brand-sage: #88a19f;
+  --color-brand-teal: #6aabb5;
+  --color-brand-cyan: #4bb4ca;
+  --color-brand-vibrant: #1ec3ea;
 }
 
 @media (prefers-color-scheme: dark) {

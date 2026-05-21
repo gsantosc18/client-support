@@ -19,7 +19,7 @@ export default function LoginPage() {
     e.preventDefault();
     const success = await handleLogin({ email, password, keep_me_logged_in: keepMeLoggedIn });
     if (success) {
-      router.push('/dashboard'); // example redirect
+      router.push('/clients');
     }
   };
 
@@ -31,7 +31,7 @@ export default function LoginPage() {
             Acesse sua conta
           </h2>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={onSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={onSubmit} method="post">
           {error && (
             <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm font-medium border border-red-200">
               {error}

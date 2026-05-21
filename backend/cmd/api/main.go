@@ -53,13 +53,19 @@ func main() {
 	userRepo := postgres.NewUserRepository(db)
 	companyRepo := postgres.NewCompanyRepository(db)
 	blacklistRepo := redis.NewTokenBlacklist(rdb)
+	clientRepo := postgres.NewClientRepository(db)
+	processRepo := postgres.NewProcessRepository(db)
 
 	// Services
 	emailService := service.NewSMTPEmailService()
 	authService := service.NewAuthService(userRepo, companyRepo, emailService, blacklistRepo)
+	clientService := service.NewClientService(clientRepo, companyRepo, processRepo)
+	processService := service.NewProcessService(processRepo, clientRepo, userRepo, companyRepo)
 
 	// Handlers
 	authHandler := handlers.NewAuthHandler(authService)
+	clientHandler := handlers.NewClientHandler(clientService)
+	processHandler := handlers.NewProcessHandler(processService)
 
 	// Fiber App
 	app := fiber.New(fiber.Config{
@@ -90,6 +96,22 @@ func main() {
 	
 	// Rota de logout protegida pelo middleware JWT para invalidar e colocar na blacklist
 	auth.Post("/logout", middleware.Protected(blacklistRepo), authHandler.Logout)
+
+	// Rotas de Clientes (Clientes)
+	clients := api.Group("/clients", middleware.Protected(blacklistRepo))
+	clients.Post("/", clientHandler.Create)
+	clients.Get("/", clientHandler.List)
+	clients.Get("/:id", clientHandler.GetByID)
+	clients.Put("/:id", clientHandler.Update)
+	clients.Delete("/:id", clientHandler.Delete)
+
+	// Rotas de Processos (Processos)
+	processes := api.Group("/processes", middleware.Protected(blacklistRepo))
+	processes.Post("/", processHandler.Create)
+	processes.Get("/", processHandler.List)
+	processes.Get("/:id", processHandler.GetByID)
+	processes.Put("/:id", processHandler.Update)
+	processes.Patch("/:id/status", processHandler.UpdateStatus)
 
 	log.Println("Server is running on port", cfg.Server.Port)
 	log.Fatal(app.Listen(fmt.Sprintf(":%s", cfg.Server.Port)))

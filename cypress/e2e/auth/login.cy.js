@@ -35,8 +35,8 @@ describe('Login de Usuário - E2E', () => {
     cy.get('input[name="password"]').type(testUser.password);
     cy.get('button[type="submit"]').click();
 
-    // Deve ser redirecionado para a tela de dashboard
-    cy.url().should('include', '/dashboard');
+    // Deve ser redirecionado para a tela de clientes
+    cy.url().should('include', '/clients');
   });
 
   it('deve salvar o refreshToken no localStorage se "Manter-me logado" estiver marcado', () => {
@@ -45,7 +45,7 @@ describe('Login de Usuário - E2E', () => {
     cy.get('input[id="remember-me"]').check();
     cy.get('button[type="submit"]').click();
 
-    cy.url().should('include', '/dashboard');
+    cy.url().should('include', '/clients');
     cy.window().then((window) => {
       expect(window.localStorage.getItem('refreshToken')).to.not.be.null;
     });
@@ -57,7 +57,7 @@ describe('Login de Usuário - E2E', () => {
     cy.get('input[id="remember-me"]').uncheck();
     cy.get('button[type="submit"]').click();
 
-    cy.url().should('include', '/dashboard');
+    cy.url().should('include', '/clients');
     cy.window().then((window) => {
       expect(window.localStorage.getItem('refreshToken')).to.be.null;
     });

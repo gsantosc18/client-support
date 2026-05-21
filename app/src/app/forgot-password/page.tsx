@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
             Informe seu e-mail para receber as instruções de recuperação.
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={onSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={onSubmit} method="post">
           {message && (
             <div className="p-4 rounded-md bg-green-50 text-green-700 text-sm font-medium border border-green-200">
               {message}
