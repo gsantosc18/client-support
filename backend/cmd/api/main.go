@@ -1,16 +1,22 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/client-support/backend/internal/config"
+	"github.com/client-support/backend/internal/domain"
 	handlers "github.com/client-support/backend/internal/handlers/http"
 	"github.com/client-support/backend/internal/handlers/http/middleware"
 	"github.com/client-support/backend/internal/repository/postgres"
 	"github.com/client-support/backend/internal/repository/redis"
 	"github.com/client-support/backend/internal/service"
+	"github.com/client-support/backend/internal/storage"
 	"github.com/client-support/backend/pkg/utils"
 	redisclient "github.com/redis/go-redis/v9"
 
@@ -49,6 +55,26 @@ func main() {
 	}
 	rdb := redisclient.NewClient(redisOpt)
 
+	// Provedor de Storage (S3 se USE_S3=true, senão LocalStorage)
+	var fileStorage domain.FileStorage
+	useS3 := os.Getenv("USE_S3") == "true"
+	if useS3 {
+		awsCfg, err := awsconfig.LoadDefaultConfig(context.TODO())
+		if err != nil {
+			log.Fatal("Falha ao carregar AWS config:", err)
+		}
+		s3Client := s3.NewFromConfig(awsCfg)
+		bucket := os.Getenv("AWS_BUCKET")
+		if bucket == "" {
+			bucket = "client-support-documents"
+		}
+		fileStorage = storage.NewS3Storage(s3Client, bucket)
+		log.Println("Provedor de Storage configurado para AWS S3 (Bucket:", bucket, ")")
+	} else {
+		fileStorage = storage.NewLocalStorage("./storage")
+		log.Println("Provedor de Storage configurado para Armazenamento Local (Caminho: ./storage)")
+	}
+
 	// Repositories
 	userRepo := postgres.NewUserRepository(db)
 	companyRepo := postgres.NewCompanyRepository(db)
@@ -57,6 +83,7 @@ func main() {
 	processRepo := postgres.NewProcessRepository(db)
 	estRepo := postgres.NewEstablishmentRepository(db)
 	annoRepo := postgres.NewAnnotationRepository(db)
+	docRepo := postgres.NewDocumentRepository(db)
 
 	// Services
 	emailService := service.NewSMTPEmailService()
@@ -66,6 +93,7 @@ func main() {
 	processService := service.NewProcessService(processRepo, clientRepo, userRepo, companyRepo, estRepo)
 	userService := service.NewUserService(userRepo)
 	annoService := service.NewAnnotationService(annoRepo, processRepo)
+	docService := service.NewDocumentService(docRepo, fileStorage, processRepo)
 
 	// Handlers
 	authHandler := handlers.NewAuthHandler(authService)
@@ -74,6 +102,7 @@ func main() {
 	processHandler := handlers.NewProcessHandler(processService)
 	userHandler := handlers.NewUserHandler(userService)
 	annoHandler := handlers.NewAnnotationHandler(annoService)
+	docHandler := handlers.NewDocumentHandler(docService)
 
 	// Fiber App
 	app := fiber.New(fiber.Config{
@@ -136,6 +165,13 @@ func main() {
 	processes.Get("/:id/annotations", annoHandler.List)
 	processes.Put("/:id/annotations/:annotation_id", annoHandler.Update)
 	processes.Delete("/:id/annotations/:annotation_id", annoHandler.Delete)
+
+	// Rotas de Gerenciamento de Documentos
+	processes.Post("/:id/documents", docHandler.Upload)
+	processes.Get("/:id/documents", docHandler.List)
+	processes.Get("/:id/documents/:document_id/download", docHandler.Download)
+	processes.Put("/:id/documents/:document_id", docHandler.Update)
+	processes.Delete("/:id/documents/:document_id", docHandler.Delete)
 
 	log.Println("Server is running on port", cfg.Server.Port)
 	log.Fatal(app.Listen(fmt.Sprintf(":%s", cfg.Server.Port)))

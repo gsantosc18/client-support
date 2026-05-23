@@ -96,6 +96,25 @@ Tabela que gerencia as anotações e observações de acompanhamento interno dos
 
 ---
 
+### 1.7. Tabela: `documents`
+Tabela que gerencia os metadados dos arquivos e documentos anexados aos processos.
+* **id**: `UUID` (Chave Primária, gerada via `uuid_generate_v4()`)
+* **company_id**: `UUID` (Chave Estrangeira apontando para `companies(id)`, `ON DELETE CASCADE`)
+* **process_id**: `UUID` (Chave Estrangeira apontando para `processes(id)`, `ON DELETE CASCADE`)
+* **user_id**: `UUID` (Chave Estrangeira apontando para `users(id)`, `ON DELETE RESTRICT`)
+* **name**: `VARCHAR(255)` (Nome do documento para exibição, Obrigatório)
+* **description**: `TEXT` (Descrição opcional sobre o arquivo)
+* **file_path**: `VARCHAR(512)` (Caminho relativo único físico do arquivo no storage, Obrigatório)
+* **file_type**: `VARCHAR(100)` (MIME-Type do arquivo, ex: `application/pdf`, Obrigatório)
+* **file_size**: `BIGINT` (Tamanho em bytes do arquivo físico, Obrigatório)
+* **created_at**: `TIMESTAMPTZ` (Data de criação UTC)
+* **updated_at**: `TIMESTAMPTZ` (Data de atualização UTC)
+
+**Índices e Otimização**:
+* Índice composto em `(process_id, company_id)` acelerando consultas e garantindo multitenancy eficiente.
+
+---
+
 ## 2. Especificação da API REST
 
 Todos os endpoints listados abaixo exigem autenticação via Token JWT Bearer no cabeçalho HTTP:
@@ -260,3 +279,67 @@ O `company_id` do registro é inferido automaticamente do token de acesso do usu
   * `204 No Content`: Anotação excluída com sucesso.
   * `400 Bad Request`: Se excedeu a janela de 15 minutos.
   * `403 Forbidden`: Se o usuário logado não for o criador original.
+
+---
+
+### 2.5. Gerenciamento de Documentos (Document Manager)
+
+Todos os endpoints exigem envio do token JWT Bearer e inferem o `company_id` de forma implícita e isolada.
+
+#### Enviar Documento (`POST /api/processes/:processId/documents`)
+* **Payload**: `multipart/form-data` contendo:
+  * `name`: `string` (Ex: "Contrato Inicial", Obrigatório)
+  * `description`: `string` (Opcional)
+  * `file`: `file` (Arquivo binário física do upload, Obrigatório, PDF, PNG, JPG, JPEG, DOCX ou XLSX, Máx. 10MB)
+* **Respostas**:
+  * `201 Created`: Documento gravado física e logicamente. Retorna o objeto `Document` serializado.
+  * `400 Bad Request`: Extensão não permitida, arquivo acima de 10MB ou nome em branco.
+  * `403 Forbidden`: Se o processo não pertencer à empresa do usuário logado.
+
+#### Listar Documentos (`GET /api/processes/:processId/documents`)
+* Retorna a lista completa de documentos vinculados a um processo específico da empresa autenticada.
+* **Resposta (200 OK)**:
+```json
+[
+  {
+    "id": "a4567890-1234-abcd-ef01-1234567890f1",
+    "company_id": "company123-1234-abcd-ef01-1234567890ab",
+    "process_id": "process123-1234-abcd-ef01-1234567890bc",
+    "user_id": "user123-1234-abcd-ef01-1234567890de",
+    "name": "Contrato Inicial",
+    "description": "Contrato assinado em PDF",
+    "file_path": "company123/process123/a4567890/contrato.pdf",
+    "file_type": "application/pdf",
+    "file_size": 254890,
+    "created_at": "2026-05-23T12:00:00Z",
+    "updated_at": "2026-05-23T12:00:00Z"
+  }
+]
+```
+
+#### Editar Documento (`PUT /api/processes/:processId/documents/:documentId`)
+* **Payload**: `multipart/form-data` contendo:
+  * `name`: `string` (Obrigatório)
+  * `description`: `string` (Opcional)
+  * `file`: `file` (Arquivo físico opcional para substituição)
+* **Validações de Substituição**:
+  * Se um novo arquivo físico for enviado, o arquivo antigo no disco/S3 é movido para a subpasta `trash/` com a tag `deleted: "true"`, e o registro é atualizado com as novas dimensões de arquivo e MIME-Type.
+* **Respostas**:
+  * `200 OK`: Documento atualizado com sucesso.
+  * `400 Bad Request`: Validações de arquivo inválidas.
+
+#### Baixar Arquivo (`GET /api/processes/:processId/documents/:documentId/download`)
+* Endpoint seguro que streama o arquivo binário do storage utilizando buffer de memória de forma performática.
+* **Headers de Resposta**:
+  * `Content-Disposition: attachment; filename="<nome-sanitizado>"`
+  * `Content-Type: <tipo-do-arquivo>`
+* **Respostas**:
+  * `200 OK`: Envio de fluxo binário do arquivo.
+  * `404 Not Found`: Arquivo físico ou registro inexistente.
+
+#### Excluir Documento (`DELETE /api/processes/:processId/documents/:documentId`)
+* Deleta permanentemente o registro de metadados do banco de dados (Hard Delete) e move o arquivo físico correspondente no S3/Storage para a subpasta `/trash` aplicando a tag `deleted: "true"` (Soft Delete físico).
+* **Respostas**:
+  * `200 OK`: Removido logicamente do storage e fisicamente da tabela.
+  * `403 Forbidden`: Violação de escopo multi-tenant.
+

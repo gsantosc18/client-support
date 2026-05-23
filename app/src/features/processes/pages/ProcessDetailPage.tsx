@@ -7,6 +7,7 @@ import { ProcessStatusBadge } from '../components/ProcessStatusBadge';
 import { ProcessStatus } from '@/interfaces/process.interface';
 import { ProcessDeleteModal } from '../components/ProcessDeleteModal';
 import { ProcessAnnotations } from '../components/ProcessAnnotations';
+import { ProcessDocuments } from '../components/ProcessDocuments';
 import { Button } from '@/components/forms/Button';
 
 export const ProcessDetailPage: React.FC = () => {
@@ -17,6 +18,7 @@ export const ProcessDetailPage: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'annotations' | 'documents'>('annotations');
 
   useEffect(() => {
     if (id) {
@@ -315,7 +317,44 @@ export const ProcessDetailPage: React.FC = () => {
 
         </div>
 
-        <ProcessAnnotations processId={process.id as string} />
+        <div className="mt-8 border-b border-border-default">
+          <div className="flex gap-6">
+            <button
+              onClick={() => setActiveTab('annotations')}
+              className={`pb-3 text-sm font-bold transition-all relative ${
+                activeTab === 'annotations'
+                  ? 'text-brand-primary'
+                  : 'text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              Anotações de Acompanhamento
+              {activeTab === 'annotations' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-primary rounded-full animate-fade-in" />
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('documents')}
+              className={`pb-3 text-sm font-bold transition-all relative ${
+                activeTab === 'documents'
+                  ? 'text-brand-primary'
+                  : 'text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              Documentos do Processo
+              {activeTab === 'documents' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-primary rounded-full animate-fade-in" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-6">
+          {activeTab === 'annotations' ? (
+            <ProcessAnnotations processId={process.id as string} />
+          ) : (
+            <ProcessDocuments processId={process.id as string} />
+          )}
+        </div>
       </main>
 
       <ProcessDeleteModal
