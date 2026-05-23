@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Input } from '@/components/forms/Input';
 import { Button } from '@/components/forms/Button';
+import { FormContainer } from '@/components/forms/FormContainer';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -25,19 +26,18 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background-primary py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-background-surface p-8 rounded-xl shadow-sm border border-border-default">
+      <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-text-primary">
+          <h2 className="text-center text-3xl font-bold text-text-primary tracking-tight">
             Acesse sua conta
           </h2>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={onSubmit} method="post">
-          {error && (
-            <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-red-600 text-sm font-medium border border-destructive/20">
-              {error}
-            </div>
-          )}
-          
+        
+        <FormContainer 
+          onSubmit={onSubmit} 
+          errorMessage={error}
+          className="mt-8"
+        >
           <div className="space-y-4">
             <Input 
               label="E-mail"
@@ -48,6 +48,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seu@email.com" 
+              disabled={loading}
             />
             <Input 
               label="Senha"
@@ -58,6 +59,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••" 
+              disabled={loading}
             />
           </div>
 
@@ -69,9 +71,10 @@ export default function LoginPage() {
                 type="checkbox"
                 checked={keepMeLoggedIn}
                 onChange={(e) => setKeepMeLoggedIn(e.target.checked)}
-                className="h-4 w-4 text-action-primary focus-visible:ring-focus-ring border-border-default rounded"
+                className="h-4 w-4 text-action-primary focus-visible:ring-focus-ring border-border-default rounded bg-background-surface cursor-pointer"
+                disabled={loading}
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-text-secondary">
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-text-secondary select-none cursor-pointer">
                 Manter-me logado
               </label>
             </div>
@@ -84,18 +87,23 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <Button type="submit" className="w-full" isLoading={loading}>
+            <Button 
+              type="submit" 
+              className="w-full font-semibold" 
+              isLoading={loading}
+              disabled={loading}
+            >
               Entrar
             </Button>
           </div>
           
-          <div className="text-center text-sm">
+          <div className="text-center text-sm pt-2">
             <span className="text-text-secondary">Não tem uma conta? </span>
             <Link href="/register" className="font-semibold text-action-primary hover:text-action-hover transition-colors">
               Cadastre-se
             </Link>
           </div>
-        </form>
+        </FormContainer>
       </div>
     </div>
   );

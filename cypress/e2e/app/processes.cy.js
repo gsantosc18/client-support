@@ -83,8 +83,8 @@ describe('Fluxo E2E de Processos e Estabelecimentos - CRUD completo e Validaçõ
 
     cy.get('h1').should('contain.text', 'Processos');
 
-    // 3. Clicar em Adicionar Processo
-    cy.get('button').contains('Adicionar Processo').click();
+    // 3. Clicar em Novo Processo
+    cy.get('button').contains('Novo Processo').click();
     cy.url().should('include', '/processes/new');
 
     // Validações visuais do formulário (estilos de label, asterisco vermelho de campos obrigatórios, grid responsivo)

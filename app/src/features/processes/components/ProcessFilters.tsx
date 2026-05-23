@@ -1,42 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/forms/Button';
 
-interface ClientFiltersProps {
+interface ProcessFiltersProps {
   isOpen: boolean;
   onClose: () => void;
-  onApply: (filters: { search: string; status: string }) => void;
+  onApply: (filters: { protocol: string; status: string }) => void;
   onClear: () => void;
-  initialSearch: string;
+  initialProtocol: string;
   initialStatus: string;
 }
 
-export const ClientFilters: React.FC<ClientFiltersProps> = ({
+export const ProcessFilters: React.FC<ProcessFiltersProps> = ({
   isOpen,
   onClose,
   onApply,
   onClear,
-  initialSearch,
+  initialProtocol,
   initialStatus,
 }) => {
-  const [search, setSearch] = useState(initialSearch);
+  const [protocol, setProtocol] = useState(initialProtocol);
   const [status, setStatus] = useState(initialStatus);
 
   useEffect(() => {
     if (isOpen) {
-      setSearch(initialSearch);
+      setProtocol(initialProtocol);
       setStatus(initialStatus);
     }
-  }, [isOpen, initialSearch, initialStatus]);
+  }, [isOpen, initialProtocol, initialStatus]);
 
   if (!isOpen) return null;
 
   const handleApply = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    onApply({ search, status });
+    onApply({ protocol, status });
   };
 
   const handleClear = () => {
-    setSearch('');
+    setProtocol('');
     setStatus('');
     onClear();
   };
@@ -49,7 +49,7 @@ export const ClientFilters: React.FC<ClientFiltersProps> = ({
             <svg className="h-5 w-5 text-action-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
             </svg>
-            Filtrar Clientes
+            Filtrar Processos
           </h2>
           <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -60,40 +60,36 @@ export const ClientFilters: React.FC<ClientFiltersProps> = ({
 
         <form onSubmit={handleApply} className="space-y-4">
           <div>
-            <label htmlFor="search-input" className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">
-              Buscar por nome, e-mail ou CPF
+            <label htmlFor="filter-protocol" className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">
+              Buscar por Protocolo
             </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-4 w-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </span>
-              <input
-                id="search-input"
-                type="text"
-                placeholder="Nome, e-mail ou CPF..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 rounded-lg border border-border-default bg-background-primary placeholder:text-text-muted focus-visible:border-action-primary focus-visible:bg-background-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring transition-all text-sm text-text-primary"
-              />
-            </div>
+            <input
+              id="filter-protocol"
+              type="text"
+              placeholder="Ex: PROC-2026-99"
+              value={protocol}
+              onChange={(e) => setProtocol(e.target.value)}
+              className="w-full rounded-lg border border-border-default bg-background-primary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:border-action-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring transition-all"
+            />
           </div>
 
           <div>
-            <label htmlFor="status-select" className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">
-              Status do Cliente
+            <label htmlFor="filter-status" className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">
+              Status do Processo
             </label>
             <select
-              id="status-select"
+              id="filter-status"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-border-default bg-background-primary focus-visible:border-action-primary focus-visible:bg-background-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring transition-all text-sm text-text-primary"
+              className="w-full rounded-lg border border-border-default bg-background-primary px-3 py-2 text-sm text-text-primary focus-visible:border-action-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring transition-all"
             >
-              <option value="">Todos os status</option>
-              <option value="ACTIVE">Ativo</option>
-              <option value="INACTIVE">Inativo</option>
-              <option value="SUSPENDED">Suspenso</option>
+              <option value="">Todos os Status</option>
+              <option value="PENDING">Pendente</option>
+              <option value="IN_PROGRESS">Em Andamento</option>
+              <option value="AWAITING_DOCUMENTATION">Aguardando Documentação</option>
+              <option value="IN_ANALYSIS">Em Análise</option>
+              <option value="COMPLETED">Concluído</option>
+              <option value="CANCELLED">Cancelado</option>
             </select>
           </div>
 

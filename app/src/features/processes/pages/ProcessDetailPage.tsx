@@ -121,10 +121,6 @@ export const ProcessDetailPage: React.FC = () => {
                   </h1>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <span className="text-xs font-bold text-text-muted block mb-1 uppercase tracking-wider">Status do Processo</span>
-                    <ProcessStatusBadge status={process.status || 'PENDING'} />
-                  </div>
                   <div className="border-l border-border-default pl-4">
                     <span className="text-xs font-bold text-text-muted block mb-1 uppercase tracking-wider">Alterar Status</span>
                     <select

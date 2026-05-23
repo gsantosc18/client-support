@@ -1,7 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Client } from '@/interfaces/client.interface';
+import { FormContainer } from '@/components/forms/FormContainer';
+import { FormSection } from '@/components/forms/FormSection';
+import { FormField } from '@/components/forms/FormField';
 import { Input } from '@/components/forms/Input';
-import { Button } from '@/components/forms/Button';
+import { Select } from '@/components/forms/Select';
+import { FormActions } from '@/components/forms/FormActions';
 
 interface ClientFormProps {
   initialData?: Client | null;
@@ -41,6 +48,30 @@ const cleanDigits = (value?: string | null): string | null => {
   return digits === '' ? null : digits;
 };
 
+// Esquema de Validação Zod
+const clientSchema = z.object({
+  full_name: z.string().min(3, 'Nome Completo deve conter pelo menos 3 caracteres'),
+  email: z.string()
+    .email('Formato de e-mail inválido')
+    .nullable()
+    .or(z.literal('')),
+  phone: z.string().nullable().or(z.literal('')),
+  birth_date: z.string().nullable().or(z.literal('')),
+  cpf: z.string()
+    .refine((val) => {
+      if (!val) return true;
+      const digits = val.replace(/\D/g, '');
+      return digits.length === 0 || digits.length === 11;
+    }, 'CPF deve conter exatamente 11 dígitos')
+    .nullable()
+    .or(z.literal('')),
+  rg: z.string().nullable().or(z.literal('')),
+  cnh: z.string().nullable().or(z.literal('')),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED']),
+});
+
+type ClientFormValues = z.infer<typeof clientSchema>;
+
 export const ClientForm: React.FC<ClientFormProps> = ({
   initialData,
   onSubmit,
@@ -48,198 +79,174 @@ export const ClientForm: React.FC<ClientFormProps> = ({
   onCancel,
   errorMessage,
 }) => {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [birthDate, setBirthDate] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [rg, setRg] = useState('');
-  const [cnh, setCnh] = useState('');
-  const [status, setStatus] = useState<'ACTIVE' | 'INACTIVE' | 'SUSPENDED'>('ACTIVE');
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<ClientFormValues>({
+    resolver: zodResolver(clientSchema),
+    defaultValues: {
+      full_name: '',
+      email: '',
+      phone: '',
+      birth_date: '',
+      cpf: '',
+      rg: '',
+      cnh: '',
+      status: 'ACTIVE',
+    },
+  });
 
+  // Sync data from initialData when editing
   useEffect(() => {
     if (initialData) {
-      setFullName(initialData.full_name || '');
-      setEmail(initialData.email || '');
-      setPhone(initialData.phone ? formatPhone(initialData.phone) : '');
-      
-      // format birthdate from ISO/UTC format YYYY-MM-DDT... to YYYY-MM-DD for input date
-      if (initialData.birth_date) {
-        setBirthDate(initialData.birth_date.substring(0, 10));
-      } else {
-        setBirthDate('');
-      }
-
-      setCpf(initialData.cpf ? formatCPF(initialData.cpf) : '');
-      setRg(initialData.rg || '');
-      setCnh(initialData.cnh || '');
-      setStatus(initialData.status || 'ACTIVE');
+      reset({
+        full_name: initialData.full_name || '',
+        email: initialData.email || '',
+        phone: initialData.phone ? formatPhone(initialData.phone) : '',
+        birth_date: initialData.birth_date ? initialData.birth_date.substring(0, 10) : '',
+        cpf: initialData.cpf ? formatCPF(initialData.cpf) : '',
+        rg: initialData.rg || '',
+        cnh: initialData.cnh || '',
+        status: initialData.status || 'ACTIVE',
+      });
+    } else {
+      reset({
+        full_name: '',
+        email: '',
+        phone: '',
+        birth_date: '',
+        cpf: '',
+        rg: '',
+        cnh: '',
+        status: 'ACTIVE',
+      });
     }
-  }, [initialData]);
+  }, [initialData, reset]);
 
-  const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCpf(formatCPF(e.target.value));
-  };
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPhone(formatPhone(e.target.value));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!fullName.trim()) return;
-
+  const handleFormSubmit = async (values: ClientFormValues) => {
     const payload: Client = {
-      full_name: fullName.trim(),
-      email: email.trim() === '' ? null : email.trim(),
-      phone: cleanDigits(phone),
-      birth_date: birthDate === '' ? null : birthDate,
-      cpf: cleanDigits(cpf),
-      rg: rg.trim() === '' ? null : rg.trim(),
-      cnh: cnh.trim() === '' ? null : cnh.trim(),
-      status: initialData ? status : 'ACTIVE',
+      full_name: values.full_name.trim(),
+      email: values.email?.trim() === '' ? null : values.email?.trim(),
+      phone: cleanDigits(values.phone),
+      birth_date: values.birth_date === '' ? null : values.birth_date,
+      cpf: cleanDigits(values.cpf),
+      rg: values.rg?.trim() === '' ? null : values.rg?.trim(),
+      cnh: values.cnh?.trim() === '' ? null : values.cnh?.trim(),
+      status: initialData ? values.status : 'ACTIVE',
     };
 
     await onSubmit(payload);
   };
 
-  const inputClass = "w-full rounded-lg border border-border-default bg-background-surface px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:border-action-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring transition-all";
+  const statusOptions = [
+    { value: 'ACTIVE', label: 'Ativo' },
+    { value: 'INACTIVE', label: 'Inativo' },
+    { value: 'SUSPENDED', label: 'Suspenso' },
+  ];
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-background-surface p-8 rounded-xl border border-border-default shadow-sm">
-      {errorMessage && (
-        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm font-medium border border-destructive/20">
-          {errorMessage}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <FormContainer onSubmit={handleSubmit(handleFormSubmit)} errorMessage={errorMessage}>
+      <FormSection title="Informações Gerais" columns={2}>
         <div className="md:col-span-2">
-          <label htmlFor="full-name" className="block text-sm font-semibold text-text-secondary mb-1.5">
-            Nome Completo <span className="text-destructive font-bold">*</span>
-          </label>
-          <input
-            id="full-name"
-            type="text"
-            required
-            placeholder="Ex: João da Silva"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            className={inputClass}
-          />
+          <FormField label="Nome Completo" id="full-name" required error={errors.full_name?.message}>
+            <Input
+              id="full-name"
+              type="text"
+              placeholder="Ex: João da Silva"
+              disabled={isLoading}
+              {...register('full_name')}
+            />
+          </FormField>
         </div>
 
-        <div>
+        <FormField label="E-mail" id="email" error={errors.email?.message}>
           <Input
-            label="E-mail"
             id="email"
             type="email"
             placeholder="Ex: joao@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
+            {...register('email')}
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="phone" className="block text-sm font-semibold text-text-secondary mb-1.5">
-            Telefone
-          </label>
-          <input
+        <FormField label="Telefone" id="phone" error={errors.phone?.message}>
+          <Input
             id="phone"
             type="text"
             placeholder="Ex: (11) 98888-7777"
-            value={phone}
-            onChange={handlePhoneChange}
-            className={inputClass}
+            disabled={isLoading}
+            {...register('phone')}
+            onChange={(e) => {
+              const formatted = formatPhone(e.target.value);
+              setValue('phone', formatted, { shouldValidate: true });
+            }}
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="birth-date" className="block text-sm font-semibold text-text-secondary mb-1.5">
-            Data de Nascimento
-          </label>
-          <input
+        <FormField label="Data de Nascimento" id="birth-date" error={errors.birth_date?.message}>
+          <Input
             id="birth-date"
             type="date"
-            value={birthDate}
-            onChange={(e) => setBirthDate(e.target.value)}
-            className={inputClass}
+            disabled={isLoading}
+            {...register('birth_date')}
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="cpf" className="block text-sm font-semibold text-text-secondary mb-1.5">
-            CPF
-          </label>
-          <input
+        <FormField label="CPF" id="cpf" error={errors.cpf?.message}>
+          <Input
             id="cpf"
             type="text"
             placeholder="Ex: 000.000.000-00"
-            value={cpf}
-            onChange={handleCpfChange}
-            className={inputClass}
+            disabled={isLoading}
+            {...register('cpf')}
+            onChange={(e) => {
+              const formatted = formatCPF(e.target.value);
+              setValue('cpf', formatted, { shouldValidate: true });
+            }}
           />
-        </div>
+        </FormField>
 
-        <div>
+        <FormField label="RG" id="rg" error={errors.rg?.message}>
           <Input
-            label="RG"
             id="rg"
             type="text"
             placeholder="Ex: 12.345.678-9"
-            value={rg}
-            onChange={(e) => setRg(e.target.value)}
+            disabled={isLoading}
+            {...register('rg')}
           />
-        </div>
+        </FormField>
 
-        <div>
+        <FormField label="CNH" id="cnh" error={errors.cnh?.message}>
           <Input
-            label="CNH"
             id="cnh"
             type="text"
             placeholder="Ex: 12345678900"
-            value={cnh}
-            onChange={(e) => setCnh(e.target.value)}
+            disabled={isLoading}
+            {...register('cnh')}
           />
-        </div>
+        </FormField>
 
         {initialData && (
-          <div>
-            <label htmlFor="status" className="block text-sm font-semibold text-text-secondary mb-1.5">
-              Status <span className="text-destructive font-bold">*</span>
-            </label>
-            <select
+          <FormField label="Status" id="status" required error={errors.status?.message}>
+            <Select
               id="status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value as any)}
-              className={inputClass}
-            >
-              <option value="ACTIVE">Ativo</option>
-              <option value="INACTIVE">Inativo</option>
-              <option value="SUSPENDED">Suspenso</option>
-            </select>
-          </div>
+              options={statusOptions}
+              disabled={isLoading}
+              {...register('status')}
+            />
+          </FormField>
         )}
-      </div>
+      </FormSection>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-border-default">
-        <Button
-          type="button"
-          onClick={onCancel}
-          disabled={isLoading}
-          variant="outline"
-        >
-          Cancelar
-        </Button>
-        <Button
-          type="submit"
-          disabled={isLoading}
-          isLoading={isLoading}
-          variant="primary"
-        >
-          Salvar
-        </Button>
-      </div>
-    </form>
+      <FormActions
+        isLoading={isLoading}
+        onCancel={onCancel}
+        cancelText="Cancelar"
+        submitText="Salvar"
+      />
+    </FormContainer>
   );
 };

@@ -6,7 +6,7 @@ interface ClientTableProps {
   clients: Client[];
   onDeleteClick: (client: Client) => void;
   sortField: string;
-  sortDirection: 'asc' | 'desc' | '';
+  sortDirection: 'asc' | 'desc';
   onSort: (field: string) => void;
 }
 
@@ -171,7 +171,7 @@ export const ClientTable: React.FC<ClientTableProps> = ({
                     <Link
                       href={`/clients/${c.id}`}
                       title="Ver detalhes"
-                      className="p-1.5 rounded-lg text-text-muted hover:bg-background-muted hover:text-action-primary transition-all"
+                      className="p-1.5 rounded-lg text-info/85 hover:bg-info/10 hover:text-info transition-all"
                     >
                       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -181,7 +181,7 @@ export const ClientTable: React.FC<ClientTableProps> = ({
                     <Link
                       href={`/clients/${c.id}/edit`}
                       title="Editar"
-                      className="p-1.5 rounded-lg text-text-muted hover:bg-background-muted hover:text-warning transition-all"
+                      className="p-1.5 rounded-lg text-success/85 hover:bg-success/10 hover:text-success transition-all"
                     >
                       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -191,7 +191,7 @@ export const ClientTable: React.FC<ClientTableProps> = ({
                       type="button"
                       title="Excluir"
                       onClick={() => onDeleteClick(c)}
-                      className="p-1.5 rounded-lg text-text-muted hover:bg-destructive/10 hover:text-destructive transition-all"
+                      className="p-1.5 rounded-lg text-destructive/85 hover:bg-destructive/10 hover:text-destructive transition-all"
                     >
                       <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

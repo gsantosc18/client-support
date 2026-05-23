@@ -35,13 +35,15 @@ app/src/
 ## 2. Páginas e Fluxos de Navegação
 
 ### 2.1. Tela de Listagem Geral (`/processes`)
-Exibe a lista de processos cadastrados com suporte a paginação e busca textual.
+Exibe a lista de processos cadastrados com suporte a paginação e busca por filtros de funil.
 * **Componente Base**: `ProcessListPage.tsx`
 * **Funcionalidades**:
-  * Tabela rica apresentando Protocolo, Clientes, Estabelecimento, Status e Data de Criação.
-  * Badges coloridos dinâmicos para indicação de status.
-  * Busca por termo de pesquisa.
-  * Paginação de resultados.
+  * **Sistema de Filtro por Modal**: Um botão de funil ativado alinhado à esquerda abre o modal `ProcessFilters.tsx` contendo campo de busca de protocolo e filtro de status do processo, otimizando o espaço da tabela.
+  * **Tags de Filtro Ativas**: Exibição em tempo real de tags/chips horizontais representando filtros ativos com suporte a exclusão individual ("x") e link global ("Limpar todos").
+  * **CTA Principal**: Botão superior direito formatado como `+ Novo Processo` com variante de cor primária.
+  * **Tabela de Dados Ordenável**: Ordenação binária estrita (`asc` / `desc`) interativa por colunas (Protocolo, Estabelecimento, Clientes, Responsável, Status, Data Abertura, Atualização).
+  * **Ações Colorizadas**: Ícone do Olho em Azul (`text-info`), Lápis em Verde (`text-success`), e Lixeira em Vermelho (`text-destructive`).
+  * **Paginação Premium**: Rodapé integrado contendo resumo no canto esquerdo (`"Mostrando X–Y de Z processos"`) e botões de navegação no canto direito.
 
 ### 2.2. Detalhes do Processo (`/processes/[id]`)
 Apresenta todas as informações do processo incluindo relacionamento M:N com múltiplos clientes de forma harmoniosa e profissional.

@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { useClients } from '@/features/clients/hooks/useClients';
 import { useEstablishments } from '../hooks/useEstablishments';
 import { useUsers } from '../hooks/useUsers';
@@ -7,6 +10,13 @@ import { Process, ProcessStatus } from '@/interfaces/process.interface';
 import { Client } from '@/interfaces/client.interface';
 import { Establishment } from '@/interfaces/establishment.interface';
 import { Button } from '@/components/forms/Button';
+import { FormContainer } from '@/components/forms/FormContainer';
+import { FormSection } from '@/components/forms/FormSection';
+import { FormField } from '@/components/forms/FormField';
+import { Input } from '@/components/forms/Input';
+import { Select } from '@/components/forms/Select';
+import { Textarea } from '@/components/forms/Textarea';
+import { FormActions } from '@/components/forms/FormActions';
 
 // COMPONENTE SEARCHABLE SELECT CUSTOMIZADO E PREMIUM
 interface SearchableSelectProps {
@@ -16,6 +26,8 @@ interface SearchableSelectProps {
   selectedValue: string;
   onChange: (value: string) => void;
   required?: boolean;
+  disabled?: boolean;
+  error?: string;
 }
 
 const SearchableSelect: React.FC<SearchableSelectProps> = ({
@@ -25,6 +37,8 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
   selectedValue,
   onChange,
   required,
+  disabled,
+  error,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -48,14 +62,17 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
 
   return (
     <div className="relative" ref={containerRef}>
-      <label className="block text-sm font-bold text-text-secondary text-slate-800 mb-1.5">
-        {label} {required && <span className="text-destructive text-red-500 font-extrabold">*</span>}
+      <label className="block text-sm font-semibold text-text-secondary mb-1.5 select-none">
+        {label} {required && <span className="text-destructive font-bold select-none">*</span>}
       </label>
       
       <button
         type="button"
+        disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between rounded-lg border border-border-default bg-background-surface px-3 py-2 text-sm text-text-primary hover:border-border-default focus-visible:border-action-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring transition-all text-left"
+        className={`w-full flex items-center justify-between rounded-lg border px-3 py-2 text-sm text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring transition-all text-left bg-background-surface ${
+          error ? 'border-destructive focus-visible:ring-destructive' : 'border-border-default'
+        } ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
       >
         <span className={selectedOption ? "text-text-primary font-medium" : "text-text-muted"}>
           {selectedOption ? selectedOption.label : placeholder}
@@ -65,7 +82,13 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
         </svg>
       </button>
 
-      {isOpen && (
+      {error && (
+        <span className="text-xs text-destructive font-medium mt-1 animate-in fade-in duration-100 block">
+          {error}
+        </span>
+      )}
+
+      {isOpen && !disabled && (
         <div className="absolute z-30 w-full mt-1 bg-background-surface border border-border-default rounded-lg shadow-md overflow-hidden transform transition-all duration-100">
           <div className="p-2 border-b border-border-default">
             <input
@@ -226,6 +249,25 @@ const ClientSelectModal: React.FC<ClientSelectModalProps> = ({
 };
 
 
+// Esquema de Validação Zod para Processos
+const processSchema = z.object({
+  user_id: z.string().min(1, 'Selecione o operador responsável'),
+  establishment_id: z.string().min(1, 'Selecione um estabelecimento'),
+  protocol: z.string().nullable().or(z.literal('')),
+  observation: z.string().nullable().or(z.literal('')),
+  status: z.enum([
+    'PENDING',
+    'IN_PROGRESS',
+    'AWAITING_DOCUMENTATION',
+    'IN_ANALYSIS',
+    'COMPLETED',
+    'CANCELLED',
+  ]),
+  client_ids: z.array(z.string()).min(1, 'Selecione pelo menos um cliente'),
+});
+
+type ProcessFormValues = z.infer<typeof processSchema>;
+
 // FORMULÁRIO PRINCIPAL
 interface ProcessFormProps {
   initialData?: Process | null;
@@ -247,15 +289,28 @@ export const ProcessForm: React.FC<ProcessFormProps> = ({
   const { fetchUsers, users } = useUsers();
 
   const [selectedClients, setSelectedClients] = useState<Client[]>([]);
-  const [establishmentId, setEstablishmentId] = useState('');
-  const [protocol, setProtocol] = useState('');
-  const [observation, setObservation] = useState('');
-  const [status, setStatus] = useState<ProcessStatus>('PENDING');
-  const [userId, setUserId] = useState('');
-
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [isEstModalOpen, setIsEstModalOpen] = useState(false);
   const [localEstablishments, setLocalEstablishments] = useState<Establishment[]>([]);
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    control,
+    formState: { errors },
+  } = useForm<ProcessFormValues>({
+    resolver: zodResolver(processSchema),
+    defaultValues: {
+      user_id: '',
+      establishment_id: '',
+      protocol: '',
+      observation: '',
+      status: 'PENDING',
+      client_ids: [],
+    },
+  });
 
   // Load dependency data
   useEffect(() => {
@@ -274,51 +329,56 @@ export const ProcessForm: React.FC<ProcessFormProps> = ({
   // Prefill when editing
   useEffect(() => {
     if (initialData) {
-      setSelectedClients(initialData.clients || []);
-      setEstablishmentId(initialData.establishment_id || '');
-      setProtocol(initialData.protocol || '');
-      setObservation(initialData.observation || '');
-      setStatus(initialData.status || 'PENDING');
-      setUserId(initialData.user_id || '');
+      const clientsList = initialData.clients || [];
+      setSelectedClients(clientsList);
+      reset({
+        user_id: initialData.user_id || '',
+        establishment_id: initialData.establishment_id || '',
+        protocol: initialData.protocol || '',
+        observation: initialData.observation || '',
+        status: initialData.status || 'PENDING',
+        client_ids: clientsList.map((c) => c.id as string),
+      });
+    } else {
+      setSelectedClients([]);
+      reset({
+        user_id: '',
+        establishment_id: '',
+        protocol: '',
+        observation: '',
+        status: 'PENDING',
+        client_ids: [],
+      });
     }
-  }, [initialData]);
+  }, [initialData, reset]);
+
+  // Sync selected clients list state to React Hook Form field client_ids
+  const handleConfirmClients = (selected: Client[]) => {
+    setSelectedClients(selected);
+    setValue('client_ids', selected.map((c) => c.id as string), { shouldValidate: true });
+  };
 
   const handleRemoveClient = (clientId: string) => {
-    setSelectedClients(selectedClients.filter((c) => c.id !== clientId));
+    const updated = selectedClients.filter((c) => c.id !== clientId);
+    setSelectedClients(updated);
+    setValue('client_ids', updated.map((c) => c.id as string), { shouldValidate: true });
   };
 
   const handleEstablishmentCreated = (newEst: Establishment) => {
     setLocalEstablishments((prev) => [newEst, ...prev]);
     if (newEst.id) {
-      setEstablishmentId(newEst.id);
+      setValue('establishment_id', newEst.id, { shouldValidate: true });
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (selectedClients.length === 0) {
-      alert('Selecione pelo menos um cliente');
-      return;
-    }
-
-    if (!establishmentId) {
-      alert('Selecione um estabelecimento');
-      return;
-    }
-
-    if (!userId) {
-      alert('Selecione um responsável');
-      return;
-    }
-
+  const handleFormSubmit = async (values: ProcessFormValues) => {
     const payload: Partial<Process> = {
-      user_id: userId,
-      establishment_id: establishmentId,
-      protocol: protocol.trim() || null,
-      observation: observation.trim() || null,
-      status: status,
-      client_ids: selectedClients.map((c) => c.id as string),
+      user_id: values.user_id,
+      establishment_id: values.establishment_id,
+      protocol: values.protocol?.trim() || null,
+      observation: values.observation?.trim() || null,
+      status: values.status,
+      client_ids: values.client_ids,
     };
 
     await onSubmit(payload);
@@ -337,23 +397,29 @@ export const ProcessForm: React.FC<ProcessFormProps> = ({
 
   const allClientsList = clientsData?.data || [];
 
-  const inputClass = "w-full rounded-lg border border-border-default bg-background-surface bg-white px-3 py-2 text-sm text-text-primary text-slate-800 placeholder:text-text-muted focus-visible:border-action-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring transition-all";
+  const statusOptions = [
+    { value: 'PENDING', label: 'Pendente' },
+    { value: 'IN_PROGRESS', label: 'Em Andamento' },
+    { value: 'AWAITING_DOCUMENTATION', label: 'Aguardando Documentação' },
+    { value: 'IN_ANALYSIS', label: 'Em Análise' },
+    { value: 'COMPLETED', label: 'Concluído' },
+    { value: 'CANCELLED', label: 'Cancelado' },
+  ];
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="space-y-6 bg-background-surface p-8 rounded-xl border border-border-default shadow-sm">
-        {errorMessage && (
-          <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm font-medium border border-destructive/20 animate-in fade-in duration-150">
-            {errorMessage}
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <FormContainer onSubmit={handleSubmit(handleFormSubmit)} errorMessage={errorMessage}>
+        
+        {/* SEÇÃO 1: Participantes e Estabelecimento */}
+        <FormSection title="Participantes e Estabelecimento" columns={2}>
+          
           {/* Clients section (Many-to-Many modal trigger and badges) */}
           <div className="col-span-1 md:col-span-2">
-            <label className="block text-sm font-bold text-text-secondary text-slate-800 mb-1.5">
-              Clientes Associados <span className="text-destructive text-red-500 font-extrabold">*</span> <span className="text-xs font-normal text-text-muted">(Selecione um ou mais)</span>
+            <label className="block text-sm font-semibold text-text-secondary mb-1.5 select-none">
+              Clientes Associados <span className="text-destructive font-bold select-none">*</span>{' '}
+              <span className="text-xs font-normal text-text-muted select-none">(Selecione um ou mais)</span>
             </label>
+            
             <div className="flex flex-wrap gap-2 p-2.5 min-h-[46px] border border-border-default rounded-lg bg-background-primary transition-all mb-2.5">
               {selectedClients.map((c) => (
                 <span
@@ -363,39 +429,50 @@ export const ProcessForm: React.FC<ProcessFormProps> = ({
                   {c.full_name}
                   <button
                     type="button"
+                    disabled={isLoading}
                     onClick={() => handleRemoveClient(c.id!)}
-                    className="hover:bg-action-primary/20 text-action-primary rounded-full w-4 h-4 flex items-center justify-center transition-colors font-extrabold"
+                    className="hover:bg-action-primary/20 text-action-primary rounded-full w-4 h-4 flex items-center justify-center transition-colors font-extrabold disabled:opacity-50 disabled:pointer-events-none"
                   >
                     &times;
                   </button>
                 </span>
               ))}
               {selectedClients.length === 0 && (
-                <span className="text-text-muted text-sm select-none">Nenhum cliente selecionado</span>
+                <span className="text-text-muted text-sm select-none self-center">
+                  Nenhum cliente selecionado
+                </span>
               )}
             </div>
 
             <Button
               type="button"
+              disabled={isLoading}
               onClick={() => setIsClientModalOpen(true)}
               variant="outline"
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full flex items-center justify-center gap-2 font-semibold"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
               </svg>
               Adicionar Clientes
             </Button>
+            
+            {errors.client_ids?.message && (
+              <span className="text-xs text-destructive font-medium mt-1.5 block animate-in fade-in duration-100">
+                {errors.client_ids.message}
+              </span>
+            )}
           </div>
 
           {/* Searchable Select for Establishment */}
           <div className="col-span-1">
-            <div className="flex justify-between items-center mb-0.5">
+            <div className="flex justify-between items-center mb-0.5 select-none">
               <span />
               <button
                 type="button"
+                disabled={isLoading}
                 onClick={() => setIsEstModalOpen(true)}
-                className="text-xs font-bold text-action-primary hover:text-action-hover flex items-center gap-1 transition-colors z-10"
+                className="text-xs font-bold text-action-primary hover:text-action-hover flex items-center gap-1 transition-colors z-10 disabled:opacity-50 disabled:pointer-events-none"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
@@ -403,98 +480,91 @@ export const ProcessForm: React.FC<ProcessFormProps> = ({
                 Novo Estabelecimento
               </button>
             </div>
-            <SearchableSelect
-              label="Estabelecimento"
-              placeholder="Selecione um estabelecimento..."
-              options={establishmentOptions}
-              selectedValue={establishmentId}
-              onChange={setEstablishmentId}
-              required
+            
+            <Controller
+              name="establishment_id"
+              control={control}
+              render={({ field }) => (
+                <SearchableSelect
+                  label="Estabelecimento"
+                  placeholder="Selecione um estabelecimento..."
+                  options={establishmentOptions}
+                  selectedValue={field.value}
+                  onChange={(val) => field.onChange(val)}
+                  required
+                  disabled={isLoading}
+                  error={errors.establishment_id?.message}
+                />
+              )}
             />
           </div>
 
           {/* Searchable Select for Responsável (User) */}
           <div className="col-span-1">
-            <SearchableSelect
-              label="Responsável pelo Processo"
-              placeholder="Selecione o operador responsável..."
-              options={userOptions}
-              selectedValue={userId}
-              onChange={setUserId}
-              required
+            <Controller
+              name="user_id"
+              control={control}
+              render={({ field }) => (
+                <SearchableSelect
+                  label="Responsável pelo Processo"
+                  placeholder="Selecione o operador responsável..."
+                  options={userOptions}
+                  selectedValue={field.value}
+                  onChange={(val) => field.onChange(val)}
+                  required
+                  disabled={isLoading}
+                  error={errors.user_id?.message}
+                />
+              )}
             />
           </div>
+        </FormSection>
 
+        {/* SEÇÃO 2: Identificação e Observações */}
+        <FormSection title="Identificação e Observações" columns={2}>
+          
           {/* Protocol Input */}
-          <div className="col-span-1">
-            <label htmlFor="protocol" className="block text-sm font-bold text-text-secondary text-slate-800 mb-1.5">
-              Protocolo / Identificador Externo
-            </label>
-            <input
+          <FormField label="Protocolo / Identificador Externo" id="protocol" error={errors.protocol?.message}>
+            <Input
               id="protocol"
               type="text"
               placeholder="Ex: PROC-2026-99"
-              value={protocol}
-              onChange={(e) => setProtocol(e.target.value)}
-              className={inputClass}
+              disabled={isLoading}
+              {...register('protocol')}
             />
-          </div>
+          </FormField>
 
-          {/* Status Selection (Visible in both screens) */}
-          <div className="col-span-1">
-            <label htmlFor="status" className="block text-sm font-bold text-text-secondary text-slate-800 mb-1.5">
-              Status do Processo <span className="text-destructive text-red-500 font-extrabold">*</span>
-            </label>
-            <select
+          {/* Status Selection */}
+          <FormField label="Status do Processo" id="status" required error={errors.status?.message}>
+            <Select
               id="status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value as ProcessStatus)}
-              className={inputClass}
-            >
-              <option value="PENDING">Pendente</option>
-              <option value="IN_PROGRESS">Em Andamento</option>
-              <option value="AWAITING_DOCUMENTATION">Aguardando Documentação</option>
-              <option value="IN_ANALYSIS">Em Análise</option>
-              <option value="COMPLETED">Concluído</option>
-              <option value="CANCELLED">Cancelado</option>
-            </select>
-          </div>
+              options={statusOptions}
+              disabled={isLoading}
+              {...register('status')}
+            />
+          </FormField>
 
           {/* Observation Textarea */}
           <div className="col-span-1 md:col-span-2">
-            <label htmlFor="observation" className="block text-sm font-bold text-text-secondary text-slate-800 mb-1.5">
-              Observações / Anotações
-            </label>
-            <textarea
-              id="observation"
-              rows={4}
-              placeholder="Escreva detalhes ou anotações importantes sobre o processo..."
-              value={observation}
-              onChange={(e) => setObservation(e.target.value)}
-              className={`${inputClass} resize-none`}
-            />
+            <FormField label="Observações / Anotações" id="observation" error={errors.observation?.message}>
+              <Textarea
+                id="observation"
+                rows={4}
+                placeholder="Escreva detalhes ou anotações importantes sobre o processo..."
+                disabled={isLoading}
+                {...register('observation')}
+              />
+            </FormField>
           </div>
-        </div>
+        </FormSection>
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-border-default mt-6">
-          <Button
-            type="button"
-            onClick={onCancel}
-            disabled={isLoading}
-            variant="outline"
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="submit"
-            disabled={isLoading}
-            isLoading={isLoading}
-            variant="primary"
-          >
-            Salvar Processo
-          </Button>
-        </div>
-      </form>
+        <FormActions
+          isLoading={isLoading}
+          onCancel={onCancel}
+          cancelText="Cancelar"
+          submitText="Salvar Processo"
+        />
+      </FormContainer>
 
       {/* Modal de Seleção de Clientes */}
       <ClientSelectModal
@@ -502,7 +572,7 @@ export const ProcessForm: React.FC<ProcessFormProps> = ({
         onClose={() => setIsClientModalOpen(false)}
         clients={allClientsList}
         selectedClients={selectedClients}
-        onConfirm={setSelectedClients}
+        onConfirm={handleConfirmClients}
       />
 
       {/* Establishment Creation Modal */}

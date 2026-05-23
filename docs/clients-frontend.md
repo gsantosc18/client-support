@@ -33,14 +33,16 @@ app/src/
 ## 2. Páginas e Fluxos de Navegação
 
 ### 2.1. Tela de Listagem Geral (`/clients`)
-Apresenta de forma rica a coleção de clientes pertencentes à empresa autenticada.
+Apresenta de forma rica a coleção de clientes pertencentes à empresa autenticada, seguindo estritamente as diretrizes unificadas de design.
 * **Componente Base**: `ClientListPage.tsx`
 * **Funcionalidades**:
-  * Busca textual assíncrona por Nome, E-mail ou CPF.
-  * Filtro rápido por Status (`Todos`, `Ativo`, `Inativo`, `Suspenso`).
-  * Tabela de dados ordenável interativamente clicando nas colunas (Nome, E-mail, Telefone, Status, Criação, Atualização).
-  * Paginação nativa rica.
-  * Ações rápidas de visualização, edição e exclusão de cliente.
+  * **Sistema de Filtro por Modal**: Um botão de funil ativado alinhado à esquerda abre um modal flutuante contendo busca textual e filtro de status, otimizando o espaço da tabela.
+  * **Filtros e Busca por Modal**: Busca textual assíncrona por Nome, E-mail ou CPF, e seleção de Status (`Ativo`, `Inativo`, `Suspenso`).
+  * **Tags de Filtro Ativas**: Exibição em tempo real de tags/chips horizontais representando filtros ativos com suporte a exclusão individual ("x") e link global ("Limpar todos").
+  * **CTA Principal**: Botão superior direito formatado como `+ Novo Cliente` com variante de cor primária.
+  * **Tabela de Dados Ordenável**: Ordenação binária estrita (`asc` / `desc`) interativa.
+  * **Ações Colorizadas**: Ícone do Olho em Azul (`text-info`), Lápis em Verde (`text-success`), e Lixeira em Vermelho (`text-destructive`).
+  * **Paginação Premium**: Rodapé integrado contendo resumo no canto esquerdo (`"Mostrando X–Y de Z clientes"`) e botões de navegação no canto direito.
 
 ### 2.2. Detalhes do Cliente (`/clients/[id]`)
 Exibe a visualização completa de um cliente específico com destaque para suas informações.

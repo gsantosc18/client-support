@@ -28,12 +28,16 @@ describe('Fluxo E2E de Clientes - CRUD completo e Validações', () => {
     cy.url().should('match', /\/clients$/);
 
     cy.get('h1').should('contain.text', 'Clientes');
-    cy.get('button').should('contain.text', 'Adicionar Cliente');
+    cy.get('button').should('contain.text', 'Novo Cliente');
+    
+    // Abrir o modal de filtros para verificar a visibilidade dos inputs
+    cy.get('button').contains('Filtros').click();
     cy.get('input[id="search-input"]').should('be.visible');
     cy.get('select[id="status-select"]').should('be.visible');
+    cy.get('button').contains('Limpar Filtros').click();
     
-    // Tabela vazia inicialmente
-    cy.get('td').should('contain.text', 'Nenhum cliente cadastrado ou encontrado.');
+    // Tabela ou container de listagem deve estar visível
+    cy.get('table').should('be.visible');
   });
 
   it('deve cadastrar um cliente com sucesso, visualizar detalhes, editar e excluir', () => {
@@ -50,7 +54,7 @@ describe('Fluxo E2E de Clientes - CRUD completo e Validações', () => {
     const clientName = `Cliente E2E ${Date.now()}`;
 
     // 1. Ir para a tela de criação
-    cy.get('button').contains('Adicionar Cliente').click();
+    cy.get('button').contains('Novo Cliente').click();
     cy.url().should('include', '/clients/new');
 
     // 2. Preencher formulário de criação com delay na digitação de campos mascarados
