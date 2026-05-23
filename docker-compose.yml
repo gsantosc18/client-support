@@ -31,6 +31,10 @@ services:
     environment:
       - DATABASE_URL=host=db user=root password=rootpassword dbname=client_support port=5432 sslmode=disable TimeZone=UTC
       - REDIS_URL=redis:6379
+      - LOCAL_STORAGE_PATH=/app/storage
+      - USE_S3=false
+    volumes:
+      - ./storage:/app/storage
     depends_on:
       db:
         condition: service_healthy

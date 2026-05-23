@@ -71,4 +71,10 @@ O objetivo é criar um sistema de gerenciamento de documentos que permita o cada
 - Ao realizar a edição e um novo arquivo for enviado, o arquivo antigo deve ser marcado com a tag "deleted" no objeto do S3.
 - Ao realizar a exclusão, o arquivo deve ser movido para uma pasta "trash" no S3 e coloque a tag "deleted" no objeto do S3.
 - Ao realizar a exclusão, o registro deve ser removido do banco de dados.
-
+- Quando a variável de ambiente USE_S3 for "false", os arquivos devem ser armazenados no sistema de arquivos local. A pasta deve ser definida na variável de ambiente LOCAL_STORAGE_PATH e a estrutura deve ser: <LOCAL_STORAGE_PATH>/<company_id>/<process_id>/<document_id>/<unique_file_name>.<extensao>. Onde:
+    - <LOCAL_STORAGE_PATH> é o caminho definido na variável de ambiente LOCAL_STORAGE_PATH
+    - <company_id> é o id da empresa
+    - <process_id> é o id do processo
+    - <document_id> é o id do documento
+    - <unique_file_name> é o nome do arquivo único gerado pelo backend
+    - <extensao> é a extensão do arquivo

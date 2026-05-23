@@ -71,8 +71,9 @@ func main() {
 		fileStorage = storage.NewS3Storage(s3Client, bucket)
 		log.Println("Provedor de Storage configurado para AWS S3 (Bucket:", bucket, ")")
 	} else {
-		fileStorage = storage.NewLocalStorage("./storage")
-		log.Println("Provedor de Storage configurado para Armazenamento Local (Caminho: ./storage)")
+		localStoragePath := os.Getenv("LOCAL_STORAGE_PATH")
+		fileStorage = storage.NewLocalStorage(localStoragePath)
+		log.Println("Provedor de Storage configurado para Armazenamento Local (Caminho:", localStoragePath, ")")
 	}
 
 	// Repositories
