@@ -56,3 +56,10 @@ func (r *UserRepository) FindRecoveryToken(token string) (*domain.PasswordRecove
 func (r *UserRepository) MarkRecoveryTokenUsed(id uuid.UUID) error {
 	return r.db.Model(&domain.PasswordRecoveryToken{}).Where("id = ?", id).Update("used", true).Error
 }
+
+func (r *UserRepository) FindAllByCompany(companyID uuid.UUID) ([]*domain.User, error) {
+	var users []*domain.User
+	err := r.db.Where("company_id = ? AND status = ?", companyID, domain.UserStatusActive).Find(&users).Error
+	return users, err
+}
+

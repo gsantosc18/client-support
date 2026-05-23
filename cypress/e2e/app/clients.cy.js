@@ -145,43 +145,57 @@ describe('Fluxo E2E de Clientes - CRUD completo e Validações', () => {
       }).then((clientRes) => {
         clientId = clientRes.body.id;
 
-        // Criar o processo associado
+        // Criar o estabelecimento primeiro
         cy.request({
           method: 'POST',
-          url: `${Cypress.env('backendUrl')}/api/processes`,
+          url: `${Cypress.env('backendUrl')}/api/establishments`,
           headers: { Authorization: `Bearer ${token}` },
           body: {
-            client_id: clientId,
-            user_id: userId,
-            title: 'Processo Trabalhista Inc.',
-            description: 'Ação trabalhista contra empresa XPTO',
-            external_id: `PROC-${Date.now()}`,
-            status: 'IN_PROGRESS'
+            name: `Estabelecimento QA ${Date.now()}`,
+            address: 'Avenida Principal, 100',
+            city: 'São Paulo',
+            state: 'SP'
           }
-        }).then((procRes) => {
-          expect(procRes.status).to.eq(201);
+        }).then((estRes) => {
+          const estId = estRes.body.id;
 
-          // 2. Com os dados prontos no banco, fazer login via UI para acessar a tela com segurança
-          cy.visit('/login');
-          cy.get('input[name="email"]').type(testUser.email);
-          cy.get('input[name="password"]').type(testUser.password);
-          cy.get('button[type="submit"]').click();
-          cy.url().should('match', /\/clients$/);
+          // Criar o processo associado usando a nova modelagem
+          cy.request({
+            method: 'POST',
+            url: `${Cypress.env('backendUrl')}/api/processes`,
+            headers: { Authorization: `Bearer ${token}` },
+            body: {
+              client_ids: [clientId],
+              user_id: userId,
+              establishment_id: estId,
+              protocol: `PROC-${Date.now()}`,
+              status: 'IN_PROGRESS'
+            }
+          }).then((procRes) => {
+            expect(procRes.status).to.eq(201);
 
-          // 3. Buscar e tentar excluir o cliente usando click forçado
-          cy.get('tbody').should('contain.text', clientName);
-          cy.get('tbody').contains(clientName).parent().find('button[title="Excluir"]').click({ force: true });
+            // 2. Com os dados prontos no banco, fazer login via UI para acessar a tela com segurança
+            cy.visit('/login');
+            cy.get('input[name="email"]').type(testUser.email);
+            cy.get('input[name="password"]').type(testUser.password);
+            cy.get('button[type="submit"]').click();
+            cy.url().should('match', /\/clients$/);
 
-          // 4. Confirmar digitando "delete"
-          cy.get('input[id="delete-confirm"]').type('delete');
-          cy.get('button').contains('Remover').click();
+            // 3. Buscar e tentar excluir o cliente usando click forçado
+            cy.get('tbody').should('contain.text', clientName);
+            cy.get('tbody').contains(clientName).parent().find('button[title="Excluir"]').click({ force: true });
 
-          // 5. Validar mensagem de bloqueio referencial retornada pelo backend
-          cy.get('.text-red-600').should('contain.text', 'O cliente está vinculado a um processo e não pode ser removido.');
-          
-          // 6. Cancelar modal e verificar persistência
-          cy.get('button').contains('Cancelar').click();
-          cy.get('tbody').should('contain.text', clientName);
+            // 4. Confirmar digitando "delete"
+            cy.get('input[id="delete-confirm"]').type('delete');
+            cy.get('button').contains('Remover').click();
+
+            // 5. Validar mensagem de bloqueio referencial retornada pelo backend
+            cy.get('.text-red-600').should('contain.text', 'O cliente está vinculado a um processo e não pode ser removido.');
+            
+            // 6. Cancelar modal e verificar persistência
+            cy.get('button').contains('Cancelar').click();
+            cy.get('tbody').should('contain.text', clientName);
+          });
         });
       });
     });

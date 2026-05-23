@@ -18,9 +18,11 @@ func NewProcessHandler(processService *service.ProcessService) *ProcessHandler {
 }
 
 type CreateProcessRequest struct {
-	ClientID   string  `json:"client_id"`
-	UserID     string  `json:"user_id"`
-	ExternalID *string `json:"external_id"`
+	ClientIDs       []string `json:"client_ids"`
+	UserID          string   `json:"user_id"`
+	EstablishmentID string   `json:"establishment_id"`
+	Protocol        *string  `json:"protocol"`
+	Observation     *string  `json:"observation"`
 }
 
 func (h *ProcessHandler) Create(c *fiber.Ctx) error {
@@ -34,9 +36,17 @@ func (h *ProcessHandler) Create(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "dados inválidos"})
 	}
 
-	clientID, err := uuid.Parse(req.ClientID)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "client_id inválido"})
+	if len(req.ClientIDs) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "pelo menos um client_id é obrigatório"})
+	}
+
+	var clientUUIDs []uuid.UUID
+	for _, cidStr := range req.ClientIDs {
+		cid, err := uuid.Parse(cidStr)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "client_id inválido: " + cidStr})
+		}
+		clientUUIDs = append(clientUUIDs, cid)
 	}
 
 	userID, err := uuid.Parse(req.UserID)
@@ -44,23 +54,27 @@ func (h *ProcessHandler) Create(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "user_id inválido"})
 	}
 
-	externalID := sanitizeOptionalString(req.ExternalID)
-
-	process := &domain.Process{
-		CompanyID:  companyID,
-		ClientID:   clientID,
-		UserID:     userID,
-		ExternalID: externalID,
+	estID, err := uuid.Parse(req.EstablishmentID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "establishment_id inválido"})
 	}
 
-	if err := h.processService.Create(process); err != nil {
-		if isConflictError(err) {
-			return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "CONFLITO", "message": err.Error()})
-		}
+	protocol := sanitizeOptionalString(req.Protocol)
+	observation := sanitizeOptionalString(req.Observation)
+
+	process := &domain.Process{
+		CompanyID:       companyID,
+		UserID:          userID,
+		EstablishmentID: estID,
+		Protocol:        protocol,
+		Observation:     observation,
+	}
+
+	if err := h.processService.Create(process, clientUUIDs); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "BAD_REQUEST", "message": err.Error()})
 	}
 
-	// Carrega dados completos (Preload) para retorno
+	// Carrega dados completos para retorno
 	fullProcess, err := h.processService.FindByIDAndCompany(process.ID, companyID)
 	if err == nil {
 		return c.Status(fiber.StatusCreated).JSON(fullProcess)
@@ -76,7 +90,7 @@ func (h *ProcessHandler) List(c *fiber.Ctx) error {
 	}
 
 	status := c.Query("status")
-	externalID := c.Query("external_id")
+	protocol := c.Query("protocol")
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
 
@@ -94,7 +108,7 @@ func (h *ProcessHandler) List(c *fiber.Ctx) error {
 		}
 	}
 
-	processes, total, err := h.processService.FindAll(companyID, clientID, userID, status, externalID, page, limit)
+	processes, total, err := h.processService.FindAll(companyID, clientID, userID, status, protocol, page, limit)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "erro ao buscar processos"})
 	}
@@ -147,9 +161,17 @@ func (h *ProcessHandler) Update(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "dados inválidos"})
 	}
 
-	clientID, err := uuid.Parse(req.ClientID)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "client_id inválido"})
+	if len(req.ClientIDs) == 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "pelo menos um client_id é obrigatório"})
+	}
+
+	var clientUUIDs []uuid.UUID
+	for _, cidStr := range req.ClientIDs {
+		cid, err := uuid.Parse(cidStr)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "client_id inválido: " + cidStr})
+		}
+		clientUUIDs = append(clientUUIDs, cid)
 	}
 
 	userID, err := uuid.Parse(req.UserID)
@@ -157,20 +179,24 @@ func (h *ProcessHandler) Update(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "user_id inválido"})
 	}
 
-	externalID := sanitizeOptionalString(req.ExternalID)
-
-	process := &domain.Process{
-		ID:         id,
-		CompanyID:  companyID,
-		ClientID:   clientID,
-		UserID:     userID,
-		ExternalID: externalID,
+	estID, err := uuid.Parse(req.EstablishmentID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "establishment_id inválido"})
 	}
 
-	if err := h.processService.Update(process); err != nil {
-		if isConflictError(err) {
-			return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "CONFLITO", "message": err.Error()})
-		}
+	protocol := sanitizeOptionalString(req.Protocol)
+	observation := sanitizeOptionalString(req.Observation)
+
+	process := &domain.Process{
+		ID:              id,
+		CompanyID:       companyID,
+		UserID:          userID,
+		EstablishmentID: estID,
+		Protocol:        protocol,
+		Observation:     observation,
+	}
+
+	if err := h.processService.Update(process, clientUUIDs); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "BAD_REQUEST", "message": err.Error()})
 	}
 
@@ -212,4 +238,22 @@ func (h *ProcessHandler) UpdateStatus(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"message": "status atualizado com sucesso", "id": id, "status": status})
+}
+
+func (h *ProcessHandler) Delete(c *fiber.Ctx) error {
+	companyID, ok := c.Locals("company_id").(uuid.UUID)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Não autorizado"})
+	}
+
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "ID inválido"})
+	}
+
+	if err := h.processService.Delete(id, companyID); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"message": "Processo excluído com sucesso.", "id": id})
 }

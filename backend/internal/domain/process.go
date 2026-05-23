@@ -9,31 +9,41 @@ import (
 type ProcessStatus string
 
 const (
-	ProcessStatusStarted    ProcessStatus = "STARTED"
-	ProcessStatusPending    ProcessStatus = "PENDING"
-	ProcessStatusInProgress ProcessStatus = "IN_PROGRESS"
-	ProcessStatusCompleted  ProcessStatus = "COMPLETED"
-	ProcessStatusCancelled  ProcessStatus = "CANCELLED"
+	ProcessStatusPending              ProcessStatus = "PENDING"
+	ProcessStatusInProgress           ProcessStatus = "IN_PROGRESS"
+	ProcessStatusAwaitingDocumentation ProcessStatus = "AWAITING_DOCUMENTATION"
+	ProcessStatusInAnalysis           ProcessStatus = "IN_ANALYSIS"
+	ProcessStatusCompleted            ProcessStatus = "COMPLETED"
+	ProcessStatusCancelled            ProcessStatus = "CANCELLED"
 )
 
 type Process struct {
-	ID         uuid.UUID     `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
-	CompanyID  uuid.UUID     `json:"company_id" gorm:"type:uuid;not null"`
-	Company    Company       `json:"company" gorm:"foreignKey:CompanyID"`
-	ClientID   uuid.UUID     `json:"client_id" gorm:"type:uuid;not null"`
-	Client     Client        `json:"client" gorm:"foreignKey:ClientID"`
-	UserID     uuid.UUID     `json:"user_id" gorm:"type:uuid;not null"`
-	User       User          `json:"user" gorm:"foreignKey:UserID"`
-	ExternalID *string       `json:"external_id" gorm:"default:null"`
-	Status     ProcessStatus `json:"status" gorm:"not null;default:'STARTED'"`
-	CreatedAt  time.Time     `json:"created_at"`
-	UpdatedAt  time.Time     `json:"updated_at"`
+	ID              uuid.UUID     `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
+	CompanyID       uuid.UUID     `json:"company_id" gorm:"type:uuid;not null"`
+	Company         Company       `json:"company" gorm:"foreignKey:CompanyID"`
+	UserID          uuid.UUID     `json:"user_id" gorm:"type:uuid;not null"`
+	User            User          `json:"user" gorm:"foreignKey:UserID"`
+	EstablishmentID uuid.UUID     `json:"establishment_id" gorm:"type:uuid;not null"`
+	Establishment   Establishment `json:"establishment" gorm:"foreignKey:EstablishmentID"`
+	Protocol        *string       `json:"protocol" gorm:"default:null"`
+	Observation     *string       `json:"observation" gorm:"default:null"`
+	Status          ProcessStatus `json:"status" gorm:"not null;default:'PENDING'"`
+	Clients         []Client      `json:"clients" gorm:"many2many:client_processes;"`
+	CreatedAt       time.Time     `json:"created_at"`
+	UpdatedAt       time.Time     `json:"updated_at"`
 }
 
 type ProcessRepository interface {
 	Create(process *Process) error
 	FindByIDAndCompany(id uuid.UUID, companyID uuid.UUID) (*Process, error)
-	FindAll(companyID uuid.UUID, clientID *uuid.UUID, userID *uuid.UUID, status string, externalID string, page int, limit int) ([]*Process, int, error)
+	FindAll(companyID uuid.UUID, clientID *uuid.UUID, userID *uuid.UUID, status string, protocol string, page int, limit int) ([]*Process, int, error)
 	Update(process *Process) error
-	ExistsExternalIDInCompany(externalID string, companyID uuid.UUID, excludeID *uuid.UUID) (bool, error)
+	Delete(id uuid.UUID, companyID uuid.UUID) error
 }
+
+type DeletedProcess struct {
+	ID        uuid.UUID `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
+	Data      []byte    `json:"data" gorm:"type:jsonb;not null"`
+	DeletedAt time.Time `json:"deleted_at" gorm:"type:timestamp with time zone;default:CURRENT_TIMESTAMP"`
+}
+

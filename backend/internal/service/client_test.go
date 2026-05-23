@@ -72,8 +72,8 @@ func (m *MockProcessRepository) FindByIDAndCompany(id uuid.UUID, companyID uuid.
 	return process, args.Error(1)
 }
 
-func (m *MockProcessRepository) FindAll(companyID uuid.UUID, clientID *uuid.UUID, userID *uuid.UUID, status string, externalID string, page int, limit int) ([]*domain.Process, int, error) {
-	args := m.Called(companyID, clientID, userID, status, externalID, page, limit)
+func (m *MockProcessRepository) FindAll(companyID uuid.UUID, clientID *uuid.UUID, userID *uuid.UUID, status string, protocol string, page int, limit int) ([]*domain.Process, int, error) {
+	args := m.Called(companyID, clientID, userID, status, protocol, page, limit)
 	var processes []*domain.Process
 	if args.Get(0) != nil {
 		processes = args.Get(0).([]*domain.Process)
@@ -86,9 +86,9 @@ func (m *MockProcessRepository) Update(process *domain.Process) error {
 	return args.Error(0)
 }
 
-func (m *MockProcessRepository) ExistsExternalIDInCompany(externalID string, companyID uuid.UUID, excludeID *uuid.UUID) (bool, error) {
-	args := m.Called(externalID, companyID, excludeID)
-	return args.Bool(0), args.Error(1)
+func (m *MockProcessRepository) Delete(id uuid.UUID, companyID uuid.UUID) error {
+	args := m.Called(id, companyID)
+	return args.Error(0)
 }
 
 // --- Testes de Unidade de ClientService ---

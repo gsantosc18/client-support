@@ -114,13 +114,30 @@ export const ClientListPage: React.FC = () => {
       {/* Barra de Navegação Superior Premium */}
       <header className="bg-white border-b border-slate-100 shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-blue-200">
-              C
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-blue-200">
+                C
+              </div>
+              <span className="font-extrabold text-slate-800 tracking-tight text-lg">
+                Suporte<span className="text-blue-600 font-medium">Cliente</span>
+              </span>
             </div>
-            <span className="font-extrabold text-slate-800 tracking-tight text-lg">
-              Suporte<span className="text-blue-600 font-medium">Cliente</span>
-            </span>
+
+            <nav className="flex items-center gap-4 border-l border-slate-100 pl-6">
+              <button
+                onClick={() => router.push('/clients')}
+                className="text-sm font-bold text-blue-600 transition-colors"
+              >
+                Clientes
+              </button>
+              <button
+                onClick={() => router.push('/processes')}
+                className="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors"
+              >
+                Processos
+              </button>
+            </nav>
           </div>
 
           <div className="flex items-center gap-4">

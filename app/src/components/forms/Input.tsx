@@ -8,9 +8,22 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input: React.FC<InputProps> = ({ label, error, className, ...props }) => {
+  const renderLabel = () => {
+    if (!label) return null;
+    if (label.endsWith(' *')) {
+      const mainText = label.slice(0, -2);
+      return (
+        <label className="text-sm font-bold text-slate-800 mb-0.5">
+          {mainText} <span className="text-red-500 font-extrabold">*</span>
+        </label>
+      );
+    }
+    return <label className="text-sm font-bold text-slate-800 mb-0.5">{label}</label>;
+  };
+
   return (
     <div className="flex flex-col gap-1 w-full">
-      {label && <label className="text-sm font-medium text-slate-700">{label}</label>}
+      {renderLabel()}
       <input
         className={twMerge(
           clsx(

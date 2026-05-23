@@ -71,6 +71,15 @@ func (m *MockUserRepository) MarkRecoveryTokenUsed(id uuid.UUID) error {
 	return args.Error(0)
 }
 
+func (m *MockUserRepository) FindAllByCompany(companyID uuid.UUID) ([]*domain.User, error) {
+	args := m.Called(companyID)
+	var users []*domain.User
+	if args.Get(0) != nil {
+		users = args.Get(0).([]*domain.User)
+	}
+	return users, args.Error(1)
+}
+
 type MockCompanyRepository struct {
 	mock.Mock
 }

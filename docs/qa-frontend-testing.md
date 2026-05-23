@@ -82,6 +82,9 @@ cypress/
 │   │   ├── login.cy.js       # Testes de login, "Manter-me logado" e lockout temporário (E2E)
 │   │   ├── register.cy.js    # Testes de cadastro, senha fraca, termos de uso e e-mail duplicado (E2E)
 │   │   └── recovery.cy.js    # Testes de fluxo de esqueci minha senha e redefinição (E2E)
+│   ├── app/
+│   │   ├── clients.cy.js     # Testes de CRUD de Clientes, máscaras de input, deleção e proteção (E2E)
+│   │   └── processes.cy.js   # Testes de CRUD de Processos, cadastro inline de estabelecimentos, relacionamentos M:N (E2E)
 │   └── api/
 │       └── backend_api.cy.js # Testes diretos contra endpoints Go Fiber (Status HTTP, JWT, Blacklist)
 ├── fixtures/
@@ -91,7 +94,28 @@ cypress/
     └── e2e.js                # Arquivo de carregamento global e bypass de exceções
 ```
 
-### 3. Execução dos Testes Cypress
+---
+
+## Detalhamento de Cobertura E2E de Clientes e Processos
+
+### 1. Testes de Clientes (`app/clients.cy.js`)
+* **Listagem Vazia**: Garante que o estado inicial renderiza corretamente os cabeçalhos apropriados.
+* **Validação de Campos & Máscaras**: Testa se as máscaras de CPF e Telefone são aplicadas em tempo real durante a digitação.
+* **Fluxo de Criação e Deleção**: Valida o cadastro de novos clientes e sua exclusão atômica sob a regra de confirmação com a palavra `"delete"`.
+* **Proteção contra Deleção de Clientes Vinculados**: Testa se o sistema bloqueia a exclusão de clientes vinculados a algum processo ativo.
+
+### 2. Testes de Processos e Estabelecimentos (`app/processes.cy.js`)
+* **Abertura inline de Estabelecimento**: Clica em "Novo Estabelecimento" no formulário de processos, abre o modal, preenche os dados e cria-o. Garante o comportamento contra double-click.
+* **Auto-seleção**: Valida que o modal fecha e o novo estabelecimento é automaticamente selecionado no dropdown principal do processo.
+* **Associação M:N**: Adiciona múltiplos clientes ativos à lista de vínculo do processo.
+* **Abertura de Processo**: Cadastra o processo, valida o redirecionamento de sucesso para a listagem e a exibição do status inicial "Pendente" com o badge correspondente.
+* **Detalhamento**: Clica no processo e confere a exibição dos clientes vinculados e do estabelecimento correto.
+* **Transição de Status**: Edita o status para "Em Andamento" e confere a atualização na listagem.
+* **Remoção de Processo**: Remove o processo fisicamente e valida o sumiço do registro na listagem.
+
+---
+
+## Execução dos Testes Cypress
 
 Para rodar os testes localmente, certifique-se de que a infraestrutura está ativa (`make infra`). Em seguida, utilize o script global encapsulado no Makefile ou os comandos locais:
 

@@ -1,6 +1,11 @@
 package postgres
 
 import (
+	"encoding/json"
+	"fmt"
+	"strings"
+	"time"
+
 	"github.com/client-support/backend/internal/domain"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -15,38 +20,42 @@ func NewProcessRepository(db *gorm.DB) *ProcessRepository {
 }
 
 func (r *ProcessRepository) Create(process *domain.Process) error {
-	return r.db.Create(process).Error
+	// GORM many2many mapping inserts into client_processes
+	return r.db.Omit("User", "Establishment", "Clients.*").Create(process).Error
 }
 
 func (r *ProcessRepository) FindByIDAndCompany(id uuid.UUID, companyID uuid.UUID) (*domain.Process, error) {
 	var process domain.Process
-	err := r.db.Preload("Client").Preload("User").Where("id = ? AND company_id = ?", id, companyID).First(&process).Error
+	err := r.db.Preload("Clients").Preload("User").Preload("Establishment").
+		Where("id = ? AND company_id = ?", id, companyID).First(&process).Error
 	if err != nil {
 		return nil, err
 	}
 	return &process, nil
 }
 
-func (r *ProcessRepository) FindAll(companyID uuid.UUID, clientID *uuid.UUID, userID *uuid.UUID, status string, externalID string, page int, limit int) ([]*domain.Process, int, error) {
+func (r *ProcessRepository) FindAll(companyID uuid.UUID, clientID *uuid.UUID, userID *uuid.UUID, status string, protocol string, page int, limit int) ([]*domain.Process, int, error) {
 	var processes []*domain.Process
 	var total int64
 
-	query := r.db.Model(&domain.Process{}).Where("company_id = ?", companyID)
+	query := r.db.Model(&domain.Process{}).Where("processes.company_id = ?", companyID)
 
 	if clientID != nil {
-		query = query.Where("client_id = ?", *clientID)
+		query = query.Joins("JOIN client_processes ON client_processes.process_id = processes.id").
+			Where("client_processes.client_id = ?", *clientID)
 	}
 
 	if userID != nil {
-		query = query.Where("user_id = ?", *userID)
+		query = query.Where("processes.user_id = ?", *userID)
 	}
 
 	if status != "" {
-		query = query.Where("status = ?", status)
+		query = query.Where("processes.status = ?", status)
 	}
 
-	if externalID != "" {
-		query = query.Where("external_id = ?", externalID)
+	if protocol != "" {
+		searchTerm := fmt.Sprintf("%%%s%%", strings.ToLower(protocol))
+		query = query.Where("LOWER(processes.protocol) LIKE ?", searchTerm)
 	}
 
 	// Contagem total
@@ -55,9 +64,10 @@ func (r *ProcessRepository) FindAll(companyID uuid.UUID, clientID *uuid.UUID, us
 		return nil, 0, err
 	}
 
-	// Paginação e Preload
+	// Paginação e Preloads
 	offset := (page - 1) * limit
-	err = query.Preload("Client").Preload("User").Limit(limit).Offset(offset).Order("created_at DESC").Find(&processes).Error
+	err = query.Preload("Clients").Preload("User").Preload("Establishment").
+		Limit(limit).Offset(offset).Order("processes.created_at DESC").Find(&processes).Error
 	if err != nil {
 		return nil, 0, err
 	}
@@ -66,25 +76,60 @@ func (r *ProcessRepository) FindAll(companyID uuid.UUID, clientID *uuid.UUID, us
 }
 
 func (r *ProcessRepository) Update(process *domain.Process) error {
-	return r.db.Save(process).Error
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// Atualiza os campos básicos
+		if err := tx.Omit("Clients", "User", "Establishment").Save(process).Error; err != nil {
+			return err
+		}
+		// Sincroniza a associação many-to-many com os novos clientes
+		if err := tx.Model(process).Association("Clients").Replace(process.Clients); err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
-func (r *ProcessRepository) ExistsExternalIDInCompany(externalID string, companyID uuid.UUID, excludeID *uuid.UUID) (bool, error) {
-	if externalID == "" {
-		return false, nil
-	}
+func (r *ProcessRepository) Delete(id uuid.UUID, companyID uuid.UUID) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		var process domain.Process
+		if err := tx.Preload("Clients").Preload("Establishment").Where("id = ? AND company_id = ?", id, companyID).First(&process).Error; err != nil {
+			return err
+		}
 
-	var count int64
-	query := r.db.Model(&domain.Process{}).Where("external_id = ? AND company_id = ?", externalID, companyID)
+		// Marshal the full process data to JSON
+		processJSON, err := json.Marshal(process)
+		if err != nil {
+			return err
+		}
 
-	if excludeID != nil {
-		query = query.Where("id != ?", *excludeID)
-	}
+		// Save in deleted_processes
+		deletedProc := &domain.DeletedProcess{
+			ID:        uuid.New(),
+			Data:      processJSON,
+			DeletedAt: time.Now(),
+		}
+		if err := tx.Create(deletedProc).Error; err != nil {
+			return err
+		}
 
-	err := query.Count(&count).Error
-	if err != nil {
-		return false, err
-	}
+		// Save the establishment ID for deletion later
+		estID := process.EstablishmentID
 
-	return count > 0, nil
+		// Clear client relations in client_processes associative table
+		if err := tx.Model(&process).Association("Clients").Clear(); err != nil {
+			return err
+		}
+
+		// Delete process row
+		if err := tx.Unscoped().Delete(&process).Error; err != nil {
+			return err
+		}
+
+		// Delete associated establishment row
+		if err := tx.Unscoped().Delete(&domain.Establishment{ID: estID}).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
 }

@@ -55,17 +55,22 @@ func main() {
 	blacklistRepo := redis.NewTokenBlacklist(rdb)
 	clientRepo := postgres.NewClientRepository(db)
 	processRepo := postgres.NewProcessRepository(db)
+	estRepo := postgres.NewEstablishmentRepository(db)
 
 	// Services
 	emailService := service.NewSMTPEmailService()
 	authService := service.NewAuthService(userRepo, companyRepo, emailService, blacklistRepo)
 	clientService := service.NewClientService(clientRepo, companyRepo, processRepo)
-	processService := service.NewProcessService(processRepo, clientRepo, userRepo, companyRepo)
+	estService := service.NewEstablishmentService(estRepo, companyRepo)
+	processService := service.NewProcessService(processRepo, clientRepo, userRepo, companyRepo, estRepo)
+	userService := service.NewUserService(userRepo)
 
 	// Handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	clientHandler := handlers.NewClientHandler(clientService)
+	estHandler := handlers.NewEstablishmentHandler(estService)
 	processHandler := handlers.NewProcessHandler(processService)
+	userHandler := handlers.NewUserHandler(userService)
 
 	// Fiber App
 	app := fiber.New(fiber.Config{
@@ -105,6 +110,15 @@ func main() {
 	clients.Put("/:id", clientHandler.Update)
 	clients.Delete("/:id", clientHandler.Delete)
 
+	// Rotas de Estabelecimentos
+	establishments := api.Group("/establishments", middleware.Protected(blacklistRepo))
+	establishments.Post("/", estHandler.Create)
+	establishments.Get("/", estHandler.List)
+
+	// Rotas de Usuários / Operadores
+	users := api.Group("/users", middleware.Protected(blacklistRepo))
+	users.Get("/", userHandler.List)
+
 	// Rotas de Processos (Processos)
 	processes := api.Group("/processes", middleware.Protected(blacklistRepo))
 	processes.Post("/", processHandler.Create)
@@ -112,6 +126,7 @@ func main() {
 	processes.Get("/:id", processHandler.GetByID)
 	processes.Put("/:id", processHandler.Update)
 	processes.Patch("/:id/status", processHandler.UpdateStatus)
+	processes.Delete("/:id", processHandler.Delete)
 
 	log.Println("Server is running on port", cfg.Server.Port)
 	log.Fatal(app.Listen(fmt.Sprintf(":%s", cfg.Server.Port)))

@@ -47,4 +47,5 @@ type UserRepository interface {
 	SaveRecoveryToken(token *PasswordRecoveryToken) error
 	FindRecoveryToken(token string) (*PasswordRecoveryToken, error)
 	MarkRecoveryTokenUsed(id uuid.UUID) error
+	FindAllByCompany(companyID uuid.UUID) ([]*User, error)
 }

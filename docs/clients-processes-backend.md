@@ -1,12 +1,12 @@
-# Documentação Técnica: Clientes & Processos (Backend)
+# Documentação Técnica: Clientes, Estabelecimentos & Processos (Backend)
 
-Esta documentação descreve as entidades de banco de dados e os endpoints da API REST implementados para gerenciar Clientes e Processos sob isolamento de multi-tenancy.
+Esta documentação descreve as entidades de banco de dados e os endpoints da API REST implementados para gerenciar Clientes, Estabelecimentos e Processos sob isolamento completo de multi-tenancy.
 
 ---
 
 ## 1. Banco de Dados: Entidades PostgreSQL
 
-As tabelas foram desenvolvidas de modo a suportar o cadastramento de múltiplos documentos e contatos opcionais por cliente, garantindo que a unicidade seja respeitada apenas para o escopo de cada empresa (Multi-Tenancy).
+O banco de dados foi estruturado com isolamento de `company_id` (Multi-Tenancy) para todas as entidades principais.
 
 ### 1.1. Tabela: `clients`
 Tabela que armazena os clientes atendidos pelas empresas.
@@ -32,28 +32,51 @@ Tabela que armazena os clientes atendidos pelas empresas.
 
 ---
 
-### 1.2. Tabela: `processes`
-Tabela que gerencia os chamados ou processos abertos para os clientes.
+### 1.2. Tabela: `establishments`
+Tabela que gerencia os estabelecimentos vinculados às empresas de apoio ao cliente (ex: CRAS, CREAS).
 * **id**: `UUID` (Chave Primária, gerada via `uuid_generate_v4()`)
 * **company_id**: `UUID` (Chave Estrangeira para `companies(id)`, `ON DELETE RESTRICT`)
-* **client_id**: `UUID` (Chave Estrangeira para `clients(id)`, `ON DELETE RESTRICT`)
+* **name**: `VARCHAR(255)` (Nome do estabelecimento, Obrigatório)
+* **address**: `VARCHAR(255)` (Endereço físico, Obrigatório)
+* **city**: `VARCHAR(100)` (Cidade, Obrigatório)
+* **state**: `VARCHAR(2)` (Estado/UF, Obrigatório)
+* **created_at**: `TIMESTAMPTZ` (Data de criação UTC)
+* **updated_at**: `TIMESTAMPTZ` (Data de atualização UTC)
+
+**Constraints & Unicidade**:
+* Restrição única em `(company_id, name)` para evitar estabelecimentos com o mesmo nome sob o mesmo inquilino.
+
+---
+
+### 1.3. Tabela: `processes`
+Tabela que gerencia as ações e processos abertos.
+* **id**: `UUID` (Chave Primária, gerada via `uuid_generate_v4()`)
+* **company_id**: `UUID` (Chave Estrangeira para `companies(id)`, `ON DELETE RESTRICT`)
+* **establishment_id**: `UUID` (Chave Estrangeira para `establishments(id)`, `ON DELETE RESTRICT`)
 * **user_id**: `UUID` (Chave Estrangeira para `users(id)`, `ON DELETE RESTRICT`)
-* **external_id**: `VARCHAR(255)` (Opcional, código identificador na plataforma de origem, único por empresa)
-* **status**: `VARCHAR(50)` (Enum: `STARTED`, `PENDING`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`, Default: `'STARTED'`)
+* **protocol**: `VARCHAR(255)` (Opcional, Código identificador ou protocolo do processo, Único por empresa)
+* **observation**: `TEXT` (Opcional, Observações gerais sobre o andamento)
+* **status**: `VARCHAR(50)` (Enum: `PENDING`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`, Default: `'PENDING'`)
 * **created_at**: `TIMESTAMPTZ` (Data de criação UTC)
 * **updated_at**: `TIMESTAMPTZ` (Data de atualização UTC)
 
 **Constraints**:
-* `uq_process_company_external`: Restrição única em `(company_id, external_id)`
-* `chk_process_status`: Restrição CHECK limitando os valores aos enums válidos.
+* Restrição única em `(company_id, protocol)` se o protocolo for informado.
 
 ---
 
-### 1.3. Tabela: `deleted_clients`
-Tabela de log e auditoria fria para armazenar os dados cadastrais históricos completos de clientes que foram excluídos fisicamente do sistema.
-* **id**: `BIGSERIAL` (Chave Primária, Autoincremento)
-* **data**: `JSONB` (Payload contendo os dados completos serializados em JSON da struct de cliente no momento do delete)
-* **deleted_at**: `TIMESTAMPTZ` (Data e hora em UTC em que o registro foi excluído e arquivado, Default: `CURRENT_TIMESTAMP`)
+### 1.4. Tabela Associativa: `client_processes`
+Tabela muitos-para-muitos (M:N) ligando processos a múltiplos clientes da mesma empresa.
+* **process_id**: `UUID` (Chave Estrangeira apontando para `processes(id)`, `ON DELETE CASCADE`)
+* **client_id**: `UUID` (Chave Estrangeira apontando para `clients(id)`, `ON DELETE RESTRICT`)
+
+---
+
+### 1.5. Tabela: `deleted_clients`
+Tabela de log e auditoria para armazenar dados cadastrais históricos completos de clientes excluídos fisicamente.
+* **id**: `BIGSERIAL` (Chave Primária)
+* **data**: `JSONB` (Dados completos serializados em JSON)
+* **deleted_at**: `TIMESTAMPTZ` (Default: `CURRENT_TIMESTAMP`)
 
 ---
 
@@ -63,47 +86,49 @@ Todos os endpoints listados abaixo exigem autenticação via Token JWT Bearer no
 ```http
 Authorization: Bearer <token_jwt>
 ```
-O `company_id` do registro é inferido automaticamente do token de acesso do usuário.
+O `company_id` do registro é inferido automaticamente do token de acesso do usuário logado.
 
 ---
 
 ### 2.1. Clientes (Clients)
+* **`POST /api/clients`**: Criar cliente (exige e-mail, cpf, rg e cnh únicos por tenant).
+* **`GET /api/clients`**: Listar clientes da empresa com suporte a paginação e busca textual.
+* **`PUT /api/clients/:id`**: Atualizar dados de um cliente.
+* **`DELETE /api/clients/:id`**: Exclusão física atômica gravando dados históricos na tabela fria. Bloqueado caso haja processos associados na tabela `client_processes`.
 
-#### Criar Cliente (`POST /api/clients`)
+---
+
+### 2.2. Estabelecimentos (Establishments)
+
+#### Criar Estabelecimento (`POST /api/establishments`)
 * **Request Body**:
 ```json
 {
-  "full_name": "Gedalias Caldas",
-  "email": "gedalias@example.com",
-  "phone": "+5511999999999",
-  "birth_date": "1990-05-20",
-  "cpf": "123.456.789-00",
-  "rg": "12.345.678-9",
-  "cnh": "12345678900"
+  "name": "CRAS Leste",
+  "address": "Rua das Laranjeiras, 450",
+  "city": "São Paulo",
+  "state": "SP"
 }
 ```
 * **Respostas**:
-  * `201 Created`: Cliente criado com sucesso (retorna o objeto completo).
-  * `400 Bad Request`: Dados inválidos ou formato incorreto.
-  * `409 Conflict`: E-mail, CPF, RG ou CNH já existentes para outro cliente na mesma empresa.
+  * `201 Created`: Estabelecimento cadastrado com sucesso.
+  * `400 Bad Request`: Campos obrigatórios em branco ou inválidos.
+  * `409 Conflict`: Nome de estabelecimento já cadastrado na mesma empresa.
 
-#### Listar Clientes (`GET /api/clients`)
+#### Listar Estabelecimentos (`GET /api/establishments`)
 * **Query Parameters**:
   * `page`: Página (default `1`)
-  * `limit`: Quantidade de registros (default `10`)
-  * `search`: Filtrar por nome completo, e-mail ou CPF.
-  * `status`: Filtrar por status (`ACTIVE`, `INACTIVE`, `SUSPENDED`).
+  * `limit`: Limite (default `10`)
 * **Resposta (200 OK)**:
 ```json
 {
   "data": [
     {
-      "id": "789e4567-e89b-12d3-a456-426614174000",
-      "full_name": "Gedalias Caldas",
-      "email": "gedalias@example.com",
-      "phone": "+5511999999999",
-      "cpf": "123.456.789-00",
-      "status": "ACTIVE"
+      "id": "abcde123-1234-abcd-ef01-1234567890ab",
+      "name": "CRAS Leste",
+      "address": "Rua das Laranjeiras, 450",
+      "city": "São Paulo",
+      "state": "SP"
     }
   ],
   "pagination": {
@@ -115,78 +140,41 @@ O `company_id` do registro é inferido automaticamente do token de acesso do usu
 }
 ```
 
-#### Atualizar Cliente (`PUT /api/clients/:id`)
-* **Request Body**: (Suporta os mesmos campos do POST e opcionalmente o campo `"status"` para atualização de status)
-```json
-{
-  "full_name": "Gedalias Caldas Alterado",
-  "email": "gedalias@example.com",
-  "phone": "+5511999999988",
-  "birth_date": "1990-05-20",
-  "cpf": "123.456.789-00",
-  "rg": "12.345.678-9",
-  "cnh": "12345678900",
-  "status": "SUSPENDED"
-}
-```
-* **Respostas**:
-  * `200 OK`: Atualizado com sucesso (retorna objeto completo).
-  * `400 Bad Request`: Dados ou status inválido.
-  * `404 Not Found`: Cliente não existe ou pertence a outra empresa.
-
-#### Excluir e Arquivar Cliente (`DELETE /api/clients/:id`)
-* Realiza a **exclusão física definitiva** (Hard Delete) do cliente da tabela `clients` e grava seus dados cadastrais históricos como log JSONB na tabela fria de auditoria `deleted_clients`.
-* **Atomicidade**: Toda a operação é executada sob uma transação atômica única de banco de dados (`db.Transaction`). Se houver qualquer falha no arquivamento ou na exclusão, a transação sofre rollback.
-* **Regra de Negócio de Integridade Referencial**: A exclusão só é permitida se o cliente **não possuir nenhum processo ativo ou associado no banco de dados**. Caso existam processos associados, a operação será barrada pela regra de negócios (e protegida no banco pela constraint `ON DELETE RESTRICT`).
-* **Respostas**:
-  * `200 OK`: Excluído e arquivado com sucesso.
-  ```json
-  {
-    "message": "Cliente excluído e arquivado com sucesso.",
-    "id": "789e4567-e89b-12d3-a456-426614174000"
-  }
-  ```
-  * `400 Bad Request`: Operação negada se houverem processos ativos vinculados ao cliente.
-  ```json
-  {
-    "error": "O cliente está vinculado a um processo e não pode ser removido."
-  }
-  ```
-  * `404 Not Found`: Cliente não existe ou pertence a outra empresa.
-
 ---
 
-### 2.2. Processos (Processes)
+### 2.3. Processos (Processes)
 
 #### Criar Processo (`POST /api/processes`)
 * **Request Body**:
 ```json
 {
-  "client_id": "789e4567-e89b-12d3-a456-426614174000",
+  "establishment_id": "abcde123-1234-abcd-ef01-1234567890ab",
   "user_id": "987f6543-d21c-43ba-b567-876543210000",
-  "external_id": "PROC-2026-XYZ"
+  "protocol": "PROC-2026-99",
+  "observation": "Observação importante",
+  "client_ids": [
+    "789e4567-e89b-12d3-a456-426614174000"
+  ]
 }
 ```
-* **Validações de Domínio**:
-  * O `client_id` deve ser de um cliente ativo da mesma empresa.
-  * O `user_id` deve pertencer a um operador ativo da mesma empresa.
+* **Validações**:
+  * É obrigatório associar pelo menos 1 cliente.
+  * Todos os clientes em `client_ids` devem ser ativos e da mesma empresa.
+  * O estabelecimento `establishment_id` deve pertencer à mesma empresa.
 * **Respostas**:
-  * `201 Created`: Processo inicializado com status `STARTED`.
-  * `400 Bad Request`: Usuário ou cliente inválidos/pertencentes a outro tenant.
+  * `201 Created`: Processo inicializado com sucesso.
+  * `400 Bad Request`: Dados ou relacionamentos inválidos.
 
 #### Listar Processos (`GET /api/processes`)
 * **Query Parameters**:
-  * `page` / `limit` (opcionais)
-  * `client_id` / `user_id` / `status` / `external_id` (filtros opcionais)
-* **Resposta (200 OK)**: Retorna a coleção de processos preenchidos com os dados aninhados do cliente e do usuário operador.
+  * `page` (default `1`), `limit` (default `10`)
+* **Resposta (200 OK)**: Retorna a coleção de processos contendo os clientes associados completos, o estabelecimento e o usuário operador preenchidos por preload.
 
-#### Atualizar Status do Processo (`PATCH /api/processes/:id/status`)
-* **Request Body**:
-```json
-{
-  "status": "IN_PROGRESS"
-}
-```
-* **Respostas**:
-  * `200 OK`: Transição efetuada com sucesso.
-  * `400 Bad Request`: Transição de status inválida.
+#### Buscar Processo por ID (`GET /api/processes/:id`)
+* Retorna o processo detalhado completo por ID.
+
+#### Atualizar Processo (`PUT /api/processes/:id`)
+* Permite atualizar os dados do processo, incluindo o vínculo de múltiplos clientes e estabelecimento.
+
+#### Excluir Processo (`DELETE /api/processes/:id`)
+* Remove fisicamente o processo e seus vínculos de forma atômica e em cascata.
