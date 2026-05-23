@@ -110,30 +110,30 @@ export const ClientListPage: React.FC = () => {
   const showPagination = pagination && pagination.total_records > 10;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-background-primary flex flex-col">
       {/* Barra de Navegação Superior Premium */}
-      <header className="bg-white border-b border-slate-100 shadow-sm sticky top-0 z-40">
+      <header className="bg-background-surface border-b border-border-default shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-md shadow-blue-200">
+              <div className="h-9 w-9 rounded-xl bg-action-primary flex items-center justify-center text-text-primary font-bold text-lg shadow-sm">
                 C
               </div>
-              <span className="font-extrabold text-slate-800 tracking-tight text-lg">
-                Suporte<span className="text-blue-600 font-medium">Cliente</span>
+              <span className="font-bold text-text-primary tracking-tight text-lg">
+                Suporte<span className="text-action-primary font-medium">Cliente</span>
               </span>
             </div>
 
-            <nav className="flex items-center gap-4 border-l border-slate-100 pl-6">
+            <nav className="flex items-center gap-4 border-l border-border-default pl-6">
               <button
                 onClick={() => router.push('/clients')}
-                className="text-sm font-bold text-blue-600 transition-colors"
+                className="text-sm font-bold text-action-primary transition-colors"
               >
                 Clientes
               </button>
               <button
                 onClick={() => router.push('/processes')}
-                className="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors"
+                className="text-sm font-medium text-text-secondary hover:text-action-primary transition-colors"
               >
                 Processos
               </button>
@@ -143,7 +143,7 @@ export const ClientListPage: React.FC = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={() => handleLogout()}
-              className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-red-600 transition-colors"
+              className="flex items-center gap-1.5 text-sm font-medium text-text-secondary hover:text-destructive transition-colors"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -158,15 +158,16 @@ export const ClientListPage: React.FC = () => {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Clientes</h1>
-            <p className="text-slate-500 text-sm mt-1">
+            <h1 className="text-3xl font-bold text-text-primary tracking-tight">Clientes</h1>
+            <p className="text-text-secondary text-sm mt-1">
               {pagination ? `Exibindo ${Math.min((page - 1) * 10 + 1, pagination.total_records)}-${Math.min(page * 10, pagination.total_records)} de ${pagination.total_records} clientes` : 'Carregando clientes...'}
             </p>
           </div>
 
           <Button
             onClick={() => router.push('/clients/new')}
-            className="bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-100 flex items-center gap-2 self-start sm:self-auto"
+            variant="primary"
+            className="flex items-center gap-2 self-start sm:self-auto shadow-sm"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -176,7 +177,7 @@ export const ClientListPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 text-sm font-medium text-red-600">
+          <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-sm font-medium text-destructive">
             {error}
           </div>
         )}
@@ -195,9 +196,9 @@ export const ClientListPage: React.FC = () => {
         />
 
         {loading && sortedClients.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-white border border-slate-100 rounded-xl shadow-sm">
-            <div className="h-10 w-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
-            <p className="text-slate-400 text-sm font-medium mt-4">Buscando clientes no servidor...</p>
+          <div className="flex flex-col items-center justify-center py-20 bg-background-surface border border-border-default rounded-xl shadow-sm">
+            <div className="h-10 w-10 border-4 border-border-default border-t-action-primary rounded-full animate-spin"></div>
+            <p className="text-text-muted text-sm font-medium mt-4">Buscando clientes no servidor...</p>
           </div>
         ) : (
           <>
@@ -210,8 +211,8 @@ export const ClientListPage: React.FC = () => {
             />
 
             {showPagination && pagination && (
-              <div className="flex items-center justify-between mt-6 bg-white px-5 py-3 rounded-xl border border-slate-100 shadow-sm">
-                <span className="text-sm font-medium text-slate-500">
+              <div className="flex items-center justify-between mt-6 bg-background-surface px-5 py-3 rounded-xl border border-border-default shadow-sm">
+                <span className="text-sm font-medium text-text-secondary">
                   Página {page} de {pagination.total_pages}
                 </span>
 
@@ -219,14 +220,16 @@ export const ClientListPage: React.FC = () => {
                   <Button
                     onClick={() => setPage((p) => Math.max(p - 1, 1))}
                     disabled={page === 1}
-                    className="bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 px-3 py-1 text-xs"
+                    variant="outline"
+                    className="px-3 py-1 text-xs"
                   >
                     Anterior
                   </Button>
                   <Button
                     onClick={() => setPage((p) => Math.min(p + 1, pagination.total_pages))}
                     disabled={page === pagination.total_pages}
-                    className="bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 px-3 py-1 text-xs"
+                    variant="outline"
+                    className="px-3 py-1 text-xs"
                   >
                     Próximo
                   </Button>

@@ -42,30 +42,30 @@ export const ClientDeleteModal: React.FC<ClientDeleteModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-all duration-300">
-      <div className="w-full max-w-md scale-95 transform rounded-2xl border border-slate-100 bg-white p-6 shadow-2xl transition-all duration-300">
-        <h2 className="text-xl font-bold text-red-600 flex items-center gap-2">
-          <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-text-primary/60 backdrop-blur-sm transition-all duration-300">
+      <div className="w-full max-w-md scale-95 transform rounded-2xl border border-border-default bg-background-surface p-6 shadow-lg transition-all duration-300">
+        <h2 className="text-xl font-bold text-destructive flex items-center gap-2">
+          <svg className="h-6 w-6 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
           Excluir Cliente?
         </h2>
         
-        <p className="mt-3 text-sm text-slate-600 leading-relaxed">
-          Tem certeza de que deseja excluir o cliente <strong className="text-slate-800 font-semibold">{clientName}</strong>? 
+        <p className="mt-3 text-sm text-text-secondary leading-relaxed">
+          Tem certeza de que deseja excluir o cliente <strong className="text-text-primary font-semibold">{clientName}</strong>? 
           Esta operação irá excluir permanentemente o cadastro de cliente do sistema e arquivar os dados históricos. Esta ação é irreversível.
         </p>
 
         {errorMessage && (
-          <div className="mt-4 p-3 rounded-lg bg-red-50 border border-red-100 text-sm font-medium text-red-600 leading-snug">
+          <div className="mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm font-medium text-destructive text-red-600 leading-snug">
             {errorMessage}
           </div>
         )}
 
         <form onSubmit={handleConfirm} className="mt-5 space-y-4">
           <div>
-            <label htmlFor="delete-confirm" className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">
-              Para confirmar a exclusão, digite <span className="font-mono lowercase text-red-600 font-bold bg-red-50 px-1.5 py-0.5 rounded">delete</span> no campo abaixo:
+            <label htmlFor="delete-confirm" className="block text-xs font-semibold uppercase tracking-wider text-text-secondary mb-1">
+              Para confirmar a exclusão, digite <span className="font-mono lowercase text-destructive font-bold bg-destructive/10 px-1.5 py-0.5 rounded">delete</span> no campo abaixo:
             </label>
             <input
               ref={inputRef}
@@ -75,7 +75,7 @@ export const ClientDeleteModal: React.FC<ClientDeleteModalProps> = ({
               placeholder="Digite delete aqui"
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-100 transition-all"
+              className="w-full rounded-lg border border-border-default bg-background-primary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:border-destructive focus-visible:bg-background-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive transition-all"
             />
           </div>
 
@@ -84,7 +84,7 @@ export const ClientDeleteModal: React.FC<ClientDeleteModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+              variant="outline"
             >
               Cancelar
             </Button>
@@ -92,7 +92,7 @@ export const ClientDeleteModal: React.FC<ClientDeleteModalProps> = ({
               type="submit"
               disabled={!isButtonEnabled || isLoading}
               isLoading={isLoading}
-              className="bg-red-600 hover:bg-red-700 text-white disabled:bg-red-200"
+              className="bg-destructive hover:bg-destructive/90 text-white border-transparent focus-visible:ring-destructive disabled:opacity-50"
             >
               Remover
             </Button>

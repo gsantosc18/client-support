@@ -14,6 +14,6 @@ describe('Input Component', () => {
     expect(screen.getByText('Invalid password')).toBeInTheDocument();
     
     const input = screen.getByPlaceholderText('Enter pass');
-    expect(input.className).toContain('border-red-500');
+    expect(input.className).toContain('border-destructive');
   });
 });

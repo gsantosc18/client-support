@@ -49,22 +49,22 @@ export const EstablishmentCreateModal: React.FC<EstablishmentCreateModalProps> =
       onClose();
       // Reset form
       setName('');
-      address && setAddress('');
-      city && setCity('');
-      state && setState('');
+      setAddress('');
+      setCity('');
+      setState('');
     }
     setSubmitting(false);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden transform transition-all animate-in fade-in zoom-in duration-200">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
-          <h3 className="text-base font-bold text-slate-800">Novo Estabelecimento</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-text-primary/60 backdrop-blur-sm p-4">
+      <div className="w-full max-w-lg bg-background-surface rounded-2xl shadow-xl border border-border-default overflow-hidden transform transition-all animate-in fade-in zoom-in duration-200">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-default bg-background-muted">
+          <h3 className="text-base font-bold text-text-primary">Novo Estabelecimento</h3>
           <button
             onClick={onClose}
             type="button"
-            className="text-slate-400 hover:text-slate-600 transition-colors"
+            className="text-text-muted hover:text-text-primary transition-colors"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -74,7 +74,7 @@ export const EstablishmentCreateModal: React.FC<EstablishmentCreateModalProps> =
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="p-3 rounded-lg bg-red-50 text-red-600 text-xs font-semibold border border-red-200">
+            <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-xs font-semibold border border-destructive/20">
               {error}
             </div>
           )}
@@ -123,12 +123,12 @@ export const EstablishmentCreateModal: React.FC<EstablishmentCreateModalProps> =
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-6">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border-default mt-6">
             <Button
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+              variant="outline"
             >
               Cancelar
             </Button>
@@ -136,7 +136,7 @@ export const EstablishmentCreateModal: React.FC<EstablishmentCreateModalProps> =
               type="submit"
               disabled={submitting}
               isLoading={submitting}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              variant="primary"
             >
               Salvar Estabelecimento
             </Button>

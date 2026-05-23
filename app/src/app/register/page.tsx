@@ -45,16 +45,16 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-xl w-full space-y-8 bg-white p-8 rounded-xl shadow-lg border border-slate-100">
+    <div className="min-h-screen flex items-center justify-center bg-background-primary py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-xl w-full space-y-8 bg-background-surface p-8 rounded-xl shadow-sm border border-border-default">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
+          <h2 className="mt-6 text-center text-3xl font-bold text-text-primary">
             Crie sua conta
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={onSubmit} method="post">
           {error && (
-            <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm font-medium border border-red-200">
+            <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-red-600 text-sm font-medium border border-destructive/20">
               {error}
             </div>
           )}
@@ -72,7 +72,7 @@ export default function RegisterPage() {
 
             <div className="sm:col-span-2">
               <Input label="Senha" name="password" type="password" required value={formData.password} onChange={handleChange} />
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-text-muted">
                 Mínimo de 8 caracteres, 1 número, 1 símbolo, 1 letra maiúscula e 1 minúscula. Não pode conter sequências (ex: 123, abc).
               </p>
             </div>
@@ -90,9 +90,9 @@ export default function RegisterPage() {
               required
               checked={formData.terms_accepted}
               onChange={handleChange}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              className="h-4 w-4 text-action-primary focus-visible:ring-focus-ring border-border-default rounded"
             />
-            <label htmlFor="terms_accepted" className="ml-2 block text-sm text-gray-900">
+            <label htmlFor="terms_accepted" className="ml-2 block text-sm text-text-secondary">
               Aceito os termos de uso
             </label>
           </div>
@@ -104,8 +104,8 @@ export default function RegisterPage() {
           </div>
           
           <div className="text-center text-sm">
-            <span className="text-gray-600">Já tem uma conta? </span>
-            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+            <span className="text-text-secondary">Já tem uma conta? </span>
+            <Link href="/login" className="font-semibold text-action-primary hover:text-action-hover transition-colors">
               Faça login
             </Link>
           </div>

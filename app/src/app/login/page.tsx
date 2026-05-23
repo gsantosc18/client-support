@@ -24,16 +24,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg border border-slate-100">
+    <div className="min-h-screen flex items-center justify-center bg-background-primary py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 bg-background-surface p-8 rounded-xl shadow-sm border border-border-default">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
+          <h2 className="mt-6 text-center text-3xl font-bold text-text-primary">
             Acesse sua conta
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={onSubmit} method="post">
           {error && (
-            <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm font-medium border border-red-200">
+            <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-red-600 text-sm font-medium border border-destructive/20">
               {error}
             </div>
           )}
@@ -69,15 +69,15 @@ export default function LoginPage() {
                 type="checkbox"
                 checked={keepMeLoggedIn}
                 onChange={(e) => setKeepMeLoggedIn(e.target.checked)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-action-primary focus-visible:ring-focus-ring border-border-default rounded"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-text-secondary">
                 Manter-me logado
               </label>
             </div>
 
             <div className="text-sm">
-              <Link href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
+              <Link href="/forgot-password" className="font-semibold text-action-primary hover:text-action-hover transition-colors">
                 Esqueci minha senha
               </Link>
             </div>
@@ -90,8 +90,8 @@ export default function LoginPage() {
           </div>
           
           <div className="text-center text-sm">
-            <span className="text-gray-600">Não tem uma conta? </span>
-            <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+            <span className="text-text-secondary">Não tem uma conta? </span>
+            <Link href="/register" className="font-semibold text-action-primary hover:text-action-hover transition-colors">
               Cadastre-se
             </Link>
           </div>

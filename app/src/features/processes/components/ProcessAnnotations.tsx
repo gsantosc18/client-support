@@ -78,18 +78,18 @@ export const ProcessAnnotations: React.FC<ProcessAnnotationsProps> = ({ processI
   };
 
   return (
-    <div className="space-y-6 mt-12 pt-10 border-t border-slate-100">
+    <div className="space-y-6 mt-12 pt-10 border-t border-border-default">
       <div className="flex items-center gap-2">
-        <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="h-5 w-5 text-action-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
         </svg>
-        <h3 className="text-base font-bold text-slate-800 uppercase tracking-wider">
+        <h3 className="text-base font-bold text-text-primary uppercase tracking-wider">
           Anotações de Acompanhamento
         </h3>
       </div>
 
       {error && (
-        <div className="p-3.5 rounded-lg bg-red-50 text-red-600 text-xs font-semibold border border-red-150 animate-in fade-in duration-150">
+        <div className="p-3.5 rounded-lg bg-destructive/10 text-destructive text-xs font-semibold border border-destructive/20 animate-in fade-in duration-150">
           {error}
         </div>
       )}
@@ -110,7 +110,7 @@ export const ProcessAnnotations: React.FC<ProcessAnnotationsProps> = ({ processI
             />
           ))
         ) : (
-          <div className="bg-slate-50 border border-slate-100 rounded-xl p-8 text-center text-sm text-slate-450 font-medium">
+          <div className="bg-background-surface border border-border-default rounded-xl p-8 text-center text-sm text-text-muted font-medium">
             Nenhuma anotação de acompanhamento foi registrada para este processo ainda.
           </div>
         )}

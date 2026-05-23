@@ -48,32 +48,32 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
 
   return (
     <div className="relative" ref={containerRef}>
-      <label className="block text-sm font-bold text-slate-800 mb-1.5">
-        {label} {required && <span className="text-red-500 font-extrabold">*</span>}
+      <label className="block text-sm font-bold text-text-secondary text-slate-800 mb-1.5">
+        {label} {required && <span className="text-destructive font-extrabold">*</span>}
       </label>
       
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 hover:border-slate-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all text-left"
+        className="w-full flex items-center justify-between rounded-lg border border-border-default bg-background-surface px-3 py-2 text-sm text-text-primary hover:border-border-default focus-visible:border-action-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring transition-all text-left"
       >
-        <span className={selectedOption ? "text-slate-800 font-medium" : "text-slate-400"}>
+        <span className={selectedOption ? "text-text-primary font-medium" : "text-text-muted"}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
-        <svg className={`h-4 w-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className={`h-4 w-4 text-text-muted transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
       {isOpen && (
-        <div className="absolute z-30 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden transform transition-all duration-100">
-          <div className="p-2 border-b border-slate-100">
+        <div className="absolute z-30 w-full mt-1 bg-background-surface border border-border-default rounded-lg shadow-md overflow-hidden transform transition-all duration-100">
+          <div className="p-2 border-b border-border-default">
             <input
               type="text"
               placeholder="Digite para filtrar..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-md border border-slate-200 px-2.5 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-md border border-border-default bg-background-primary px-2.5 py-1.5 text-xs text-text-primary focus-visible:border-action-primary focus-visible:outline-none"
             />
           </div>
           <div className="max-h-48 overflow-y-auto">
@@ -87,20 +87,20 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
                     setIsOpen(false);
                     setSearch('');
                   }}
-                  className={`w-full text-left px-3 py-2 text-xs transition-colors hover:bg-slate-50 flex items-center justify-between ${
-                    opt.value === selectedValue ? 'bg-blue-50/70 font-semibold text-blue-700' : 'text-slate-700'
+                  className={`w-full text-left px-3 py-2 text-xs transition-colors hover:bg-background-muted flex items-center justify-between ${
+                    opt.value === selectedValue ? 'bg-action-primary/10 font-semibold text-action-primary' : 'text-text-secondary'
                   }`}
                 >
                   <span>{opt.label}</span>
                   {opt.value === selectedValue && (
-                    <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-4 w-4 text-action-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                     </svg>
                   )}
                 </button>
               ))
             ) : (
-              <div className="px-3 py-2 text-xs text-slate-400 text-center">Nenhum resultado encontrado</div>
+              <div className="px-3 py-2 text-xs text-text-muted text-center">Nenhum resultado encontrado</div>
             )}
           </div>
         </div>
@@ -157,10 +157,10 @@ const ClientSelectModal: React.FC<ClientSelectModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-lg scale-95 transform rounded-2xl border border-slate-100 bg-white p-6 shadow-2xl transition-all duration-200">
-        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 mb-3">
-          <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-text-primary/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="w-full max-w-lg scale-95 transform rounded-2xl border border-border-default bg-background-surface p-6 shadow-lg transition-all duration-200">
+        <h2 className="text-lg font-bold text-text-primary flex items-center gap-2 mb-3">
+          <svg className="h-5 w-5 text-action-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
           </svg>
           Selecionar Clientes
@@ -172,11 +172,11 @@ const ClientSelectModal: React.FC<ClientSelectModalProps> = ({
             placeholder="Buscar por nome ou CPF..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+            className="w-full rounded-lg border border-border-default bg-background-primary px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:border-action-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring transition-all"
           />
         </div>
 
-        <div className="max-h-60 overflow-y-auto border border-slate-100 rounded-lg divide-y divide-slate-100 mb-6">
+        <div className="max-h-60 overflow-y-auto border border-border-default rounded-lg divide-y divide-border-default mb-6">
           {filteredClients.length > 0 ? (
             filteredClients.map((client) => {
               const isChecked = checkedClients.some((c) => c.id === client.id);
@@ -184,38 +184,38 @@ const ClientSelectModal: React.FC<ClientSelectModalProps> = ({
                 <div
                   key={client.id}
                   onClick={() => handleToggleClient(client)}
-                  className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 cursor-pointer select-none transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 hover:bg-background-muted/30 cursor-pointer select-none transition-colors"
                 >
                   <input
                     type="checkbox"
                     checked={isChecked}
                     onChange={() => {}} // Handled by parent click
-                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    className="h-4 w-4 rounded border-border-default text-action-primary focus-visible:ring-focus-ring cursor-pointer"
                   />
                   <div className="flex-1">
-                    <div className="text-sm font-semibold text-slate-800">{client.full_name}</div>
-                    <div className="text-xs text-slate-400">CPF: {client.cpf || 'Não cadastrado'}</div>
+                    <div className="text-sm font-semibold text-text-primary">{client.full_name}</div>
+                    <div className="text-xs text-text-secondary">CPF: {client.cpf || 'Não cadastrado'}</div>
                   </div>
                 </div>
               );
             })
           ) : (
-            <div className="p-6 text-center text-sm text-slate-400">Nenhum cliente ativo encontrado</div>
+            <div className="p-6 text-center text-sm text-text-muted">Nenhum cliente ativo encontrado</div>
           )}
         </div>
 
-        <div className="flex justify-end gap-3 border-t border-slate-100 pt-4">
+        <div className="flex justify-end gap-3 border-t border-border-default pt-4">
           <Button
             type="button"
             onClick={onClose}
-            className="bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+            variant="outline"
           >
             Cancelar
           </Button>
           <Button
             type="button"
             onClick={handleSave}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            variant="primary"
           >
             Confirmar Seleção ({checkedClients.length})
           </Button>
@@ -337,11 +337,13 @@ export const ProcessForm: React.FC<ProcessFormProps> = ({
 
   const allClientsList = clientsData?.data || [];
 
+  const inputClass = "w-full rounded-lg border border-border-default bg-background-surface bg-white px-3 py-2 text-sm text-text-primary text-slate-800 placeholder:text-text-muted focus-visible:border-action-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring transition-all";
+
   return (
     <>
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-xl border border-slate-100 shadow-md">
+      <form onSubmit={handleSubmit} className="space-y-6 bg-background-surface p-8 rounded-xl border border-border-default shadow-sm">
         {errorMessage && (
-          <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm font-medium border border-red-200 animate-in fade-in duration-150">
+          <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm font-medium border border-destructive/20 animate-in fade-in duration-150">
             {errorMessage}
           </div>
         )}
@@ -349,34 +351,35 @@ export const ProcessForm: React.FC<ProcessFormProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Clients section (Many-to-Many modal trigger and badges) */}
           <div className="col-span-1 md:col-span-2">
-            <label className="block text-sm font-bold text-slate-800 mb-1.5">
-              Clientes Associados <span className="text-red-500 font-extrabold">*</span> <span className="text-xs font-normal text-slate-400">(Selecione um ou mais)</span>
+            <label className="block text-sm font-bold text-text-secondary text-slate-800 mb-1.5">
+              Clientes Associados <span className="text-destructive font-extrabold">*</span> <span className="text-xs font-normal text-text-muted">(Selecione um ou mais)</span>
             </label>
-            <div className="flex flex-wrap gap-2 p-2.5 min-h-[46px] border border-slate-200 rounded-lg bg-slate-50 hover:border-slate-350 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 transition-all mb-2.5">
+            <div className="flex flex-wrap gap-2 p-2.5 min-h-[46px] border border-border-default rounded-lg bg-background-primary transition-all mb-2.5">
               {selectedClients.map((c) => (
                 <span
                   key={c.id}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold border border-blue-200 animate-in zoom-in-95 duration-150"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-action-primary/10 text-action-primary text-xs font-semibold border border-action-primary/20 animate-in zoom-in-95 duration-150"
                 >
                   {c.full_name}
                   <button
                     type="button"
                     onClick={() => handleRemoveClient(c.id!)}
-                    className="hover:bg-blue-200 text-blue-900 rounded-full w-4 h-4 flex items-center justify-center transition-colors font-extrabold"
+                    className="hover:bg-action-primary/20 text-action-primary rounded-full w-4 h-4 flex items-center justify-center transition-colors font-extrabold"
                   >
                     &times;
                   </button>
                 </span>
               ))}
               {selectedClients.length === 0 && (
-                <span className="text-slate-400 text-sm select-none">Nenhum cliente selecionado</span>
+                <span className="text-text-muted text-sm select-none">Nenhum cliente selecionado</span>
               )}
             </div>
 
             <Button
               type="button"
               onClick={() => setIsClientModalOpen(true)}
-              className="w-full bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 flex items-center justify-center gap-2"
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
@@ -392,7 +395,7 @@ export const ProcessForm: React.FC<ProcessFormProps> = ({
               <button
                 type="button"
                 onClick={() => setIsEstModalOpen(true)}
-                className="text-xs font-bold text-blue-650 hover:text-blue-850 flex items-center gap-1 transition-colors z-10"
+                className="text-xs font-bold text-action-primary hover:text-action-hover flex items-center gap-1 transition-colors z-10"
               >
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
@@ -424,7 +427,7 @@ export const ProcessForm: React.FC<ProcessFormProps> = ({
 
           {/* Protocol Input */}
           <div className="col-span-1">
-            <label htmlFor="protocol" className="block text-sm font-bold text-slate-800 mb-1.5">
+            <label htmlFor="protocol" className="block text-sm font-bold text-text-secondary text-slate-800 mb-1.5">
               Protocolo / Identificador Externo
             </label>
             <input
@@ -433,20 +436,20 @@ export const ProcessForm: React.FC<ProcessFormProps> = ({
               placeholder="Ex: PROC-2026-99"
               value={protocol}
               onChange={(e) => setProtocol(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all"
+              className={inputClass}
             />
           </div>
 
           {/* Status Selection (Visible in both screens) */}
           <div className="col-span-1">
-            <label htmlFor="status" className="block text-sm font-bold text-slate-800 mb-1.5">
-              Status do Processo <span className="text-red-500 font-extrabold">*</span>
+            <label htmlFor="status" className="block text-sm font-bold text-text-secondary text-slate-800 mb-1.5">
+              Status do Processo <span className="text-destructive font-extrabold">*</span>
             </label>
             <select
               id="status"
               value={status}
               onChange={(e) => setStatus(e.target.value as ProcessStatus)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all font-medium"
+              className={inputClass}
             >
               <option value="PENDING">Pendente</option>
               <option value="IN_PROGRESS">Em Andamento</option>
@@ -459,7 +462,7 @@ export const ProcessForm: React.FC<ProcessFormProps> = ({
 
           {/* Observation Textarea */}
           <div className="col-span-1 md:col-span-2">
-            <label htmlFor="observation" className="block text-sm font-bold text-slate-800 mb-1.5">
+            <label htmlFor="observation" className="block text-sm font-bold text-text-secondary text-slate-800 mb-1.5">
               Observações / Anotações
             </label>
             <textarea
@@ -468,17 +471,17 @@ export const ProcessForm: React.FC<ProcessFormProps> = ({
               placeholder="Escreva detalhes ou anotações importantes sobre o processo..."
               value={observation}
               onChange={(e) => setObservation(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all resize-none"
+              className={`${inputClass} resize-none`}
             />
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-6">
+        <div className="flex justify-end gap-3 pt-4 border-t border-border-default mt-6">
           <Button
             type="button"
             onClick={onCancel}
             disabled={isLoading}
-            className="bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+            variant="outline"
           >
             Cancelar
           </Button>
@@ -486,7 +489,7 @@ export const ProcessForm: React.FC<ProcessFormProps> = ({
             type="submit"
             disabled={isLoading}
             isLoading={isLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            variant="primary"
           >
             Salvar Processo
           </Button>

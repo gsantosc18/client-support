@@ -16,12 +16,12 @@ export const Button: React.FC<ButtonProps> = ({
   disabled, 
   ...props 
 }) => {
-  const baseStyles = 'inline-flex justify-center items-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200';
+  const baseStyles = 'inline-flex justify-center items-center px-4 py-2 border text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
   
   const variants = {
-    primary: 'border-transparent text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500',
-    secondary: 'border-transparent text-blue-700 bg-blue-100 hover:bg-blue-200 focus:ring-blue-500',
-    outline: 'border-slate-300 text-slate-700 bg-white hover:bg-slate-50 focus:ring-blue-500',
+    primary: 'border-transparent text-text-primary bg-action-primary hover:bg-action-hover focus-visible:ring-focus-ring',
+    secondary: 'border-transparent text-text-primary bg-background-muted hover:bg-border-default focus-visible:ring-focus-ring',
+    outline: 'border-border-default text-text-secondary bg-background-surface hover:bg-background-muted focus-visible:ring-focus-ring',
   };
 
   return (

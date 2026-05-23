@@ -13,12 +13,12 @@ export const Input: React.FC<InputProps> = ({ label, error, className, ...props 
     if (label.endsWith(' *')) {
       const mainText = label.slice(0, -2);
       return (
-        <label className="text-sm font-bold text-slate-800 mb-0.5">
-          {mainText} <span className="text-red-500 font-extrabold">*</span>
+        <label className="text-sm font-bold text-text-secondary text-slate-800 mb-0.5">
+          {mainText} <span className="text-destructive text-red-500 font-extrabold">*</span>
         </label>
       );
     }
-    return <label className="text-sm font-bold text-slate-800 mb-0.5">{label}</label>;
+    return <label className="text-sm font-bold text-text-secondary text-slate-800 mb-0.5">{label}</label>;
   };
 
   return (
@@ -27,14 +27,14 @@ export const Input: React.FC<InputProps> = ({ label, error, className, ...props 
       <input
         className={twMerge(
           clsx(
-            'px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-slate-900 placeholder-slate-400',
-            error && 'border-red-500 focus:ring-red-500 focus:border-red-500',
+            'px-3 py-2 border border-border-default rounded-lg shadow-sm bg-background-surface bg-white text-text-primary text-slate-800 placeholder:text-text-muted text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring',
+            error && 'border-destructive focus-visible:ring-destructive',
             className
           )
         )}
         {...props}
       />
-      {error && <span className="text-xs text-red-500">{error}</span>}
+      {error && <span className="text-xs text-destructive text-red-600 font-medium">{error}</span>}
     </div>
   );
 };

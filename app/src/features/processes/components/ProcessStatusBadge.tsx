@@ -9,19 +9,19 @@ export const ProcessStatusBadge: React.FC<ProcessStatusBadgeProps> = ({ status }
   const getStyles = () => {
     switch (status) {
       case 'PENDING':
-        return 'bg-amber-50 text-amber-700 border-amber-100';
+        return 'bg-warning/10 text-warning border-warning/20';
       case 'IN_PROGRESS':
-        return 'bg-blue-50 text-blue-700 border-blue-100';
+        return 'bg-action-primary/10 text-action-primary border-action-primary/20';
       case 'AWAITING_DOCUMENTATION':
-        return 'bg-orange-50 text-orange-700 border-orange-100';
+        return 'bg-warning/10 text-warning border-warning/20';
       case 'IN_ANALYSIS':
-        return 'bg-purple-50 text-purple-700 border-purple-100';
+        return 'bg-info/10 text-info border-info/20';
       case 'COMPLETED':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+        return 'bg-success/10 text-success border-success/20';
       case 'CANCELLED':
-        return 'bg-red-50 text-red-700 border-red-100';
+        return 'bg-destructive/10 text-destructive border-destructive/20';
       default:
-        return 'bg-slate-50 text-slate-700 border-slate-100';
+        return 'bg-background-muted text-text-secondary border-border-default';
     }
   };
 

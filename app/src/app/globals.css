@@ -3,32 +3,41 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  /* Primitive Brand Colors */
   --color-brand-sand: #a6988a;
   --color-brand-sage: #88a19f;
   --color-brand-teal: #6aabb5;
   --color-brand-cyan: #4bb4ca;
   --color-brand-vibrant: #1ec3ea;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+  /* Semantic Color Tokens */
+  --color-background-primary: #f8fafc;
+  --color-background-surface: #ffffff;
+  --color-background-muted: #f1f5f9;
+
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+
+  --color-border-default: #e2e8f0;
+  --color-border-muted: #f1f5f9;
+
+  --color-action-primary: #1ec3ea;
+  --color-action-primary-hover: #4bb4ca;
+
+  --color-focus-ring: #1ec3ea;
+
+  /* Status Colors */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-destructive: #ef4444;
+  --color-info: #3b82f6;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  color: var(--color-text-primary);
+  background-color: var(--color-background-primary);
+  min-height: 100vh;
 }
 
 @layer utilities {

@@ -19,6 +19,6 @@ describe('Button Component', () => {
   it('applies variant classes correctly', () => {
     render(<Button variant="secondary">Secondary</Button>);
     const button = screen.getByRole('button');
-    expect(button.className).toContain('bg-blue-100');
+    expect(button.className).toContain('bg-background-muted');
   });
 });

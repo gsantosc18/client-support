@@ -21,9 +21,9 @@ export const AnnotationForm: React.FC<AnnotationFormProps> = ({ onSubmit, isLoad
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm space-y-4">
+    <form onSubmit={handleSubmit} className="bg-background-surface p-6 rounded-xl border border-border-default shadow-sm space-y-4">
       <div>
-        <label htmlFor="annotation-text" className="block text-sm font-bold text-slate-800 mb-1.5">
+        <label htmlFor="annotation-text" className="block text-sm font-bold text-text-secondary mb-1.5">
           Nova Anotação de Acompanhamento
         </label>
         <textarea
@@ -32,14 +32,14 @@ export const AnnotationForm: React.FC<AnnotationFormProps> = ({ onSubmit, isLoad
           value={text}
           onChange={(e) => setText(e.target.value.slice(0, 2000))}
           placeholder="Escreva detalhes ou observações sobre o andamento deste processo..."
-          className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all resize-none"
+          className="w-full rounded-lg border border-border-default bg-background-surface px-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus-visible:border-action-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring transition-all resize-none"
           required
         />
         <div className="flex justify-between items-center mt-1">
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-text-muted">
             Anotações privadas são marcadas internamente, mas visíveis para a equipe.
           </span>
-          <span className={`text-xs font-semibold ${text.length >= 1900 ? 'text-amber-600' : 'text-slate-400'}`}>
+          <span className={`text-xs font-semibold ${text.length >= 1900 ? 'text-warning' : 'text-text-muted'}`}>
             {text.length} / 2000
           </span>
         </div>
@@ -47,14 +47,14 @@ export const AnnotationForm: React.FC<AnnotationFormProps> = ({ onSubmit, isLoad
 
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pt-2">
         <div className="flex items-center gap-2">
-          <label htmlFor="annotation-visibility" className="text-xs font-bold text-slate-600 select-none">
+          <label htmlFor="annotation-visibility" className="text-xs font-bold text-text-secondary select-none">
             Visibilidade:
           </label>
           <select
             id="annotation-visibility"
             value={visibility}
             onChange={(e) => setVisibility(e.target.value as 'PUBLIC' | 'PRIVATE')}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer"
+            className="rounded-lg border border-border-default bg-background-surface px-3 py-1.5 text-xs font-semibold text-text-primary focus-visible:border-action-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-ring transition-all cursor-pointer"
           >
             <option value="PUBLIC">🌍 Pública (Geral)</option>
             <option value="PRIVATE">🔒 Privada (Interna)</option>
@@ -65,7 +65,8 @@ export const AnnotationForm: React.FC<AnnotationFormProps> = ({ onSubmit, isLoad
           type="submit"
           disabled={isLoading || !text.trim()}
           isLoading={isLoading}
-          className="bg-blue-600 hover:bg-blue-750 text-white font-semibold text-xs px-5 py-2.5 rounded-lg shadow-sm transition-all"
+          variant="primary"
+          className="font-semibold text-xs px-5 py-2.5"
         >
           Adicionar Anotação
         </Button>

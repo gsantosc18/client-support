@@ -10,6 +10,29 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        background: {
+          primary: "var(--color-background-primary)",
+          surface: "var(--color-background-surface)",
+          muted: "var(--color-background-muted)",
+        },
+        text: {
+          primary: "var(--color-text-primary)",
+          secondary: "var(--color-text-secondary)",
+          muted: "var(--color-text-muted)",
+        },
+        border: {
+          DEFAULT: "var(--color-border-default)",
+          muted: "var(--color-border-muted)",
+        },
+        action: {
+          primary: "var(--color-action-primary)",
+          hover: "var(--color-action-primary-hover)",
+        },
+        "focus-ring": "var(--color-focus-ring)",
+        success: "var(--color-success)",
+        warning: "var(--color-warning)",
+        destructive: "var(--color-destructive)",
+        info: "var(--color-info)",
         brand: {
           sand: "var(--color-brand-sand)",
           sage: "var(--color-brand-sage)",
