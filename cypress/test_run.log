@@ -1,0 +1,75 @@
+
+================================================================================
+
+  (Run Starting)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Cypress:        13.17.0                                                                        │
+  │ Browser:        Electron 118 (headless)                                                        │
+  │ Node Version:   v25.9.0 (/opt/homebrew/Cellar/node/25.9.0_2/bin/node)                          │
+  │ Specs:          1 found (processes.cy.js)                                                      │
+  │ Searched:       e2e/app/processes.cy.js                                                        │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+────────────────────────────────────────────────────────────────────────────────────────────────────
+                                                                                                    
+  Running:  processes.cy.js                                                                 (1 of 1)
+
+
+  Fluxo E2E de Processos e Estabelecimentos - CRUD completo e Validações
+    1) deve realizar todo o fluxo de abertura de processo, criação de estabelecimento inline, selects pesquisáveis, visualização, atualização de status e exclusão com palavra-chave
+
+
+  0 passing (11s)
+  1 failing
+
+  1) Fluxo E2E de Processos e Estabelecimentos - CRUD completo e Validações
+       deve realizar todo o fluxo de abertura de processo, criação de estabelecimento inline, selects pesquisáveis, visualização, atualização de status e exclusão com palavra-chave:
+
+      Timed out retrying after 4000ms
+      + expected - actual
+
+      -'Detalhes do ProcessoProcessoProtocolo de ControleAlterar StatusData de Abertura23/05/2026, 19:12:18Última Atualização23/05/2026, 19:12:18Observações / Anotações Gerais2 cliente(s)Operador AtivoAnotações privadas são marcadas internamente, mas visíveis para a equipe.0 / 2000'
+      +'Pendente'
+      
+      at Context.eval (webpack://client-support-e2e/./e2e/app/processes.cy.js:152:19)
+
+
+
+
+  (Results)
+
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ Tests:        1                                                                                │
+  │ Passing:      0                                                                                │
+  │ Failing:      1                                                                                │
+  │ Pending:      0                                                                                │
+  │ Skipped:      0                                                                                │
+  │ Screenshots:  1                                                                                │
+  │ Video:        false                                                                            │
+  │ Duration:     11 seconds                                                                       │
+  │ Spec Ran:     processes.cy.js                                                                  │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+  (Screenshots)
+
+  -  /Users/gedalias.caldas/Documents/client-suport/cypress/cypress/screenshots/proce    (2560x1440)
+     sses.cy.js/Fluxo E2E de Processos e Estabelecimentos - CRUD completo e Validaçõe               
+     s -- deve realizar todo o fluxo de abertura de processo, criação de estabelecime               
+     nto inline, selects pesquisáveis, visualização, atualização de status e exclusão               
+      com palavr.png                                                                                
+
+
+================================================================================
+
+  (Run Finished)
+
+
+       Spec                                              Tests  Passing  Failing  Pending  Skipped  
+  ┌────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ✖  processes.cy.js                          00:11        1        -        1        -        - │
+  └────────────────────────────────────────────────────────────────────────────────────────────────┘
+    ✖  1 of 1 failed (100%)                     00:11        1        -        1        -        -  
+

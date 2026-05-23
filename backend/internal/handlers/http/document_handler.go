@@ -103,10 +103,15 @@ func (h *DocumentHandler) Download(c *fiber.Ctx) error {
 	}
 	defer reader.Close()
 
+	bodyBytes, err := io.ReadAll(reader)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "INTERNAL_SERVER_ERROR", "message": "falha ao ler o arquivo"})
+	}
+
 	c.Set("Content-Disposition", "attachment; filename="+doc.Name)
 	c.Set("Content-Type", doc.FileType)
 
-	return c.SendStream(reader)
+	return c.Send(bodyBytes)
 }
 
 func (h *DocumentHandler) Update(c *fiber.Ctx) error {

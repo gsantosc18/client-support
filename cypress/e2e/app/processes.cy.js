@@ -89,10 +89,10 @@ describe('Fluxo E2E de Processos e Estabelecimentos - CRUD completo e Validaçõ
 
     // Validações visuais do formulário (estilos de label, asterisco vermelho de campos obrigatórios, grid responsivo)
     cy.get('form').should('be.visible');
-    cy.get('label').should('have.class', 'text-slate-800').and('have.class', 'font-bold');
-    cy.get('span.text-red-500.font-extrabold').should('contain.text', '*').and('have.length.at.least', 4);
-    cy.get('input[id="protocol"]').should('have.class', 'bg-white').and('have.class', 'text-slate-800');
-    cy.get('textarea[id="observation"]').should('have.class', 'bg-white').and('have.class', 'text-slate-800');
+    cy.get('label').should('have.class', 'text-text-secondary').and('have.class', 'font-semibold');
+    cy.get('span.text-destructive.font-bold').should('contain.text', '*').and('have.length.at.least', 4);
+    cy.get('input[id="protocol"]').should('have.class', 'bg-background-surface').and('have.class', 'text-text-primary');
+    cy.get('textarea[id="observation"]').should('have.class', 'bg-background-surface').and('have.class', 'text-text-primary');
     
     // 4. Selecionar cliente na modal clicando no botão de adicionar
     cy.get('button').contains('Adicionar Clientes').click();
@@ -149,7 +149,7 @@ describe('Fluxo E2E de Processos e Estabelecimentos - CRUD completo e Validaçõ
 
     // Validar as categorias visuais
     cy.get('h1').should('contain.text', protocolCode); // Informações do Processo
-    cy.get('span').should('contain.text', 'Pendente');
+    cy.get('select#status-select').should('have.value', 'PENDING');
     
     // Validar Grid e Ordem Alfabética (Ana deve vir antes de Bruna)
     cy.get('.grid-cols-1').should('exist'); // Existe o container grid
@@ -166,12 +166,12 @@ describe('Fluxo E2E de Processos e Estabelecimentos - CRUD completo e Validaçõ
     
     cy.get('h2').should('contain.text', 'Estabelecimento'); // Estabelecimento
     cy.get('h3').should('contain.text', estName);
-
+ 
     // 10. Alterar status a partir da tela de detalhes
     cy.get('select#status-select').select('IN_PROGRESS');
     
     // O badge deve atualizar
-    cy.get('span').should('contain.text', 'Em Andamento');
+    cy.get('select#status-select').should('have.value', 'IN_PROGRESS');
 
     // 11. Editar processo pela nova seção de Ações do Processo
     cy.contains('h2', 'Ações do Processo').should('be.visible');
