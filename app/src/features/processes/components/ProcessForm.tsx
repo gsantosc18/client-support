@@ -49,7 +49,7 @@ const SearchableSelect: React.FC<SearchableSelectProps> = ({
   return (
     <div className="relative" ref={containerRef}>
       <label className="block text-sm font-bold text-text-secondary text-slate-800 mb-1.5">
-        {label} {required && <span className="text-destructive font-extrabold">*</span>}
+        {label} {required && <span className="text-destructive text-red-500 font-extrabold">*</span>}
       </label>
       
       <button
@@ -352,7 +352,7 @@ export const ProcessForm: React.FC<ProcessFormProps> = ({
           {/* Clients section (Many-to-Many modal trigger and badges) */}
           <div className="col-span-1 md:col-span-2">
             <label className="block text-sm font-bold text-text-secondary text-slate-800 mb-1.5">
-              Clientes Associados <span className="text-destructive font-extrabold">*</span> <span className="text-xs font-normal text-text-muted">(Selecione um ou mais)</span>
+              Clientes Associados <span className="text-destructive text-red-500 font-extrabold">*</span> <span className="text-xs font-normal text-text-muted">(Selecione um ou mais)</span>
             </label>
             <div className="flex flex-wrap gap-2 p-2.5 min-h-[46px] border border-border-default rounded-lg bg-background-primary transition-all mb-2.5">
               {selectedClients.map((c) => (
@@ -443,7 +443,7 @@ export const ProcessForm: React.FC<ProcessFormProps> = ({
           {/* Status Selection (Visible in both screens) */}
           <div className="col-span-1">
             <label htmlFor="status" className="block text-sm font-bold text-text-secondary text-slate-800 mb-1.5">
-              Status do Processo <span className="text-destructive font-extrabold">*</span>
+              Status do Processo <span className="text-destructive text-red-500 font-extrabold">*</span>
             </label>
             <select
               id="status"

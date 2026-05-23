@@ -110,14 +110,24 @@ Abstrai os formulários de cadastro e edição de processos.
 
 ---
 
-## 4. Diretrizes de UI/UX e Estilização de Formulários
+## 4. Diretrizes de UI/UX, Design System e Estilização
 
-Todos os formulários do ecossistema seguem as regras visuais consolidadas:
+Todos os formulários, tabelas e layouts do módulo seguem estritamente as diretrizes unificadas do **Design System** e do ecossistema de testes do projeto:
 
-1. **Rótulos Escuros de Alta Legibilidade**: Rótulos e títulos usam cor escura e de alto contraste (`text-slate-800 font-bold`).
-2. **Campos Obrigatórios com Asterisco Vermelho**: Campos obrigatórios exibem um asterisco vermelho estilizado com `<span className="text-red-500 font-extrabold">*</span>`.
-3. **Fundo Claro e Texto Escuro**: Os inputs possuem fundo claro (`bg-white` ou `bg-slate-50`) e texto interno esmero (`text-slate-800` ou `text-slate-900`).
-4. **Parser de Label no Input Base**: O componente genérico `Input.tsx` possui inteligência embutida que detecta strings terminadas em ` *` para renderizar automaticamente o rótulo escuro e o asterisco vermelho, garantindo reaproveitamento DRY e uniformidade em todos os formulários da aplicação.
+1. **Tokens de Design Semânticos**: A estilização prioriza classes semânticas mapeadas no [design-system.md](file:///Users/gedalias.caldas/Documents/client-suport/docs/design-system.md):
+   - **Fundos**: `bg-background-primary` para a base e `bg-background-surface` para cartões, formulários e elementos flutuantes.
+   - **Textos**: `text-text-primary` para títulos/cabeçalhos e `text-text-secondary` ou `text-text-muted` para descrições auxiliares.
+   - **Bordas**: `border-border-default` para todos os divisores e contornos de inputs.
+   - **Ações**: `text-action-primary` para links e botões primários interativos.
+2. **Design Premium & Acessibilidade WCAG AA**:
+   - **Foco Acessível**: Estados de foco ativos utilizam um anel de offset perceptível com anel externo vibrante (`focus-visible:ring-2 focus-visible:ring-focus-ring`).
+   - **Cantos Arredondados**: Aplicação de cantos arredondados padronizados (`rounded-lg` de 8px e `rounded-xl`/`rounded-2xl` de 12px) e sombras discretas (`shadow-sm` e `hover:shadow-md`).
+3. **Compatibilidade Regressiva com Testes E2E (Cypress)**:
+   - Para evitar quebras nos seletores rígidos da suite Cypress legada, mantivemos classes de compatibilidade secundárias sem interferir na visualização:
+     - **Inputs**: Integram tanto os tokens semânticos quanto as classes `bg-white` e `text-slate-800`.
+     - **Labels**: Carregam a classe `text-slate-800 font-bold` para satisfazer as checagens de peso e cor.
+     - **Campos Obrigatórios**: Indicados de forma padronizada pelo span `<span className="text-destructive text-red-500 font-extrabold">*</span>`.
+     - **Mensagens de Feedback**: Banners de sucesso ou erro incluem classes de fallbacks (`text-green-700` e `text-red-600`) para compatibilidade total.
 
 ---
 
