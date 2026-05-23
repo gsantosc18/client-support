@@ -168,7 +168,7 @@ describe('Fluxo E2E de Processos e Estabelecimentos - CRUD completo e Validaçõ
     cy.get('h3').should('contain.text', estName);
 
     // 10. Alterar status a partir da tela de detalhes
-    cy.get('select').select('IN_PROGRESS');
+    cy.get('select#status-select').select('IN_PROGRESS');
     
     // O badge deve atualizar
     cy.get('span').should('contain.text', 'Em Andamento');

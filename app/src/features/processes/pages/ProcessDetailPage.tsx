@@ -6,6 +6,7 @@ import { useProcesses } from '../hooks/useProcesses';
 import { ProcessStatusBadge } from '../components/ProcessStatusBadge';
 import { ProcessStatus } from '@/interfaces/process.interface';
 import { ProcessDeleteModal } from '../components/ProcessDeleteModal';
+import { ProcessAnnotations } from '../components/ProcessAnnotations';
 
 export const ProcessDetailPage: React.FC = () => {
   const router = useRouter();
@@ -125,6 +126,7 @@ export const ProcessDetailPage: React.FC = () => {
                   <div className="border-l border-slate-100 pl-4">
                     <span className="text-xs font-bold text-slate-400 block mb-1 uppercase tracking-wider">Alterar Status</span>
                     <select
+                      id="status-select"
                       disabled={updatingStatus}
                       value={process.status || 'PENDING'}
                       onChange={(e) => handleStatusChange(e.target.value as ProcessStatus)}
@@ -314,6 +316,8 @@ export const ProcessDetailPage: React.FC = () => {
           </div>
 
         </div>
+
+        <ProcessAnnotations processId={process.id as string} />
       </main>
 
       <ProcessDeleteModal

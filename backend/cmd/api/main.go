@@ -56,6 +56,7 @@ func main() {
 	clientRepo := postgres.NewClientRepository(db)
 	processRepo := postgres.NewProcessRepository(db)
 	estRepo := postgres.NewEstablishmentRepository(db)
+	annoRepo := postgres.NewAnnotationRepository(db)
 
 	// Services
 	emailService := service.NewSMTPEmailService()
@@ -64,6 +65,7 @@ func main() {
 	estService := service.NewEstablishmentService(estRepo, companyRepo)
 	processService := service.NewProcessService(processRepo, clientRepo, userRepo, companyRepo, estRepo)
 	userService := service.NewUserService(userRepo)
+	annoService := service.NewAnnotationService(annoRepo, processRepo)
 
 	// Handlers
 	authHandler := handlers.NewAuthHandler(authService)
@@ -71,6 +73,7 @@ func main() {
 	estHandler := handlers.NewEstablishmentHandler(estService)
 	processHandler := handlers.NewProcessHandler(processService)
 	userHandler := handlers.NewUserHandler(userService)
+	annoHandler := handlers.NewAnnotationHandler(annoService)
 
 	// Fiber App
 	app := fiber.New(fiber.Config{
@@ -127,6 +130,12 @@ func main() {
 	processes.Put("/:id", processHandler.Update)
 	processes.Patch("/:id/status", processHandler.UpdateStatus)
 	processes.Delete("/:id", processHandler.Delete)
+
+	// Rotas de Anotações de Processo
+	processes.Post("/:id/annotations", annoHandler.Create)
+	processes.Get("/:id/annotations", annoHandler.List)
+	processes.Put("/:id/annotations/:annotation_id", annoHandler.Update)
+	processes.Delete("/:id/annotations/:annotation_id", annoHandler.Delete)
 
 	log.Println("Server is running on port", cfg.Server.Port)
 	log.Fatal(app.Listen(fmt.Sprintf(":%s", cfg.Server.Port)))

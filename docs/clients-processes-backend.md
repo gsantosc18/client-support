@@ -80,6 +80,22 @@ Tabela de log e auditoria para armazenar dados cadastrais históricos completos 
 
 ---
 
+### 1.6. Tabela: `annotations`
+Tabela que gerencia as anotações e observações de acompanhamento interno dos processos.
+* **id**: `UUID` (Chave Primária, gerada via `uuid_generate_v4()`)
+* **company_id**: `UUID` (Chave Estrangeira apontando para `companies(id)`, `ON DELETE RESTRICT`)
+* **process_id**: `UUID` (Chave Estrangeira apontando para `processes(id)`, `ON DELETE CASCADE`)
+* **user_id**: `UUID` (Chave Estrangeira apontando para `users(id)`, `ON DELETE RESTRICT`)
+* **annotation**: `TEXT` (Texto da anotação, limite sugerido de 2000 caracteres, Obrigatório)
+* **visibility**: `VARCHAR(50)` (Enum: `PUBLIC`, `PRIVATE`, Default: `'PUBLIC'`)
+* **created_at**: `TIMESTAMPTZ` (Data de criação UTC)
+* **updated_at**: `TIMESTAMPTZ` (Data de atualização UTC)
+
+**Índices e Otimização**:
+* Índice composto em `(process_id, company_id)` para otimizar a leitura cronológica das notas de cada processo de inquilinos diferentes.
+
+---
+
 ## 2. Especificação da API REST
 
 Todos os endpoints listados abaixo exigem autenticação via Token JWT Bearer no cabeçalho HTTP:
@@ -178,3 +194,69 @@ O `company_id` do registro é inferido automaticamente do token de acesso do usu
 
 #### Excluir Processo (`DELETE /api/processes/:id`)
 * Remove fisicamente o processo e seus vínculos de forma atômica e em cascata.
+
+---
+
+### 2.4. Anotações de Acompanhamento (Process Annotations)
+
+#### Criar Anotação (`POST /api/processes/:processId/annotations`)
+* **Request Body**:
+```json
+{
+  "annotation": "Anotação contendo observações internas de teste do processo.",
+  "visibility": "PRIVATE"
+}
+```
+* **Respostas**:
+  * `201 Created`: Anotação adicionada com sucesso.
+  * `400 Bad Request`: Texto da anotação vazio ou com mais de 2000 caracteres.
+  * `403 Forbidden`: O processo ou estabelecimento não pertencem à mesma empresa do usuário autenticado.
+
+#### Listar Anotações do Processo (`GET /api/processes/:processId/annotations`)
+* Retorna a lista cronológica decrescente de todas as anotações associadas ao processo.
+* **Respostas (200 OK)**:
+```json
+[
+  {
+    "id": "e4567890-1234-abcd-ef01-1234567890cd",
+    "company_id": "company123-1234-abcd-ef01-1234567890ab",
+    "process_id": "process123-1234-abcd-ef01-1234567890bc",
+    "user_id": "user123-1234-abcd-ef01-1234567890de",
+    "annotation": "Anotação contendo observações internas de teste do processo.",
+    "visibility": "PRIVATE",
+    "created_at": "2026-05-23T12:00:00Z",
+    "updated_at": "2026-05-23T12:00:00Z",
+    "user": {
+      "first_name": "Operador",
+      "last_name": "Padrão",
+      "email": "operador@test.com"
+    }
+  }
+]
+```
+
+#### Editar Anotação (`PUT /api/processes/:processId/annotations/:annotationId`)
+* Permite ao autor da anotação modificar seu texto.
+* **Request Body**:
+```json
+{
+  "annotation": "Anotação atualizada e modificada."
+}
+```
+* **Restrições**:
+  * Modificação bloqueada se o tempo decorrido desde a criação for maior que 15 minutos.
+  * Apenas o próprio autor (`user_id`) pode modificar o registro.
+* **Respostas**:
+  * `200 OK`: Anotação atualizada.
+  * `400 Bad Request`: Texto vazio, com mais de 2000 caracteres, ou se excedeu a janela de 15 minutos.
+  * `403 Forbidden`: Se o usuário logado não for o criador original.
+
+#### Deletar Anotação (`DELETE /api/processes/:processId/annotations/:annotationId`)
+* Remove definitivamente (deleção física / Hard Delete) a anotação do banco de dados.
+* **Restrições**:
+  * Exclusão bloqueada se o tempo decorrido desde a criação for maior que 15 minutos.
+  * Apenas o próprio autor (`user_id`) pode excluir o registro.
+* **Respostas**:
+  * `204 No Content`: Anotação excluída com sucesso.
+  * `400 Bad Request`: Se excedeu a janela de 15 minutos.
+  * `403 Forbidden`: Se o usuário logado não for o criador original.
