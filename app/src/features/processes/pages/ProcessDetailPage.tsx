@@ -321,26 +321,24 @@ export const ProcessDetailPage: React.FC = () => {
           <div className="flex gap-6">
             <button
               onClick={() => setActiveTab('annotations')}
-              className={`pb-3 text-sm font-bold transition-all relative ${
-                activeTab === 'annotations'
-                  ? 'text-brand-primary'
-                  : 'text-text-secondary hover:text-text-primary'
-              }`}
+              className={`pb-3 text-sm font-bold transition-all relative ${activeTab === 'annotations'
+                ? 'text-brand-primary'
+                : 'text-text-secondary hover:text-text-primary'
+                }`}
             >
-              Anotações de Acompanhamento
+              Anotações
               {activeTab === 'annotations' && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-primary rounded-full animate-fade-in" />
               )}
             </button>
             <button
               onClick={() => setActiveTab('documents')}
-              className={`pb-3 text-sm font-bold transition-all relative ${
-                activeTab === 'documents'
-                  ? 'text-brand-primary'
-                  : 'text-text-secondary hover:text-text-primary'
-              }`}
+              className={`pb-3 text-sm font-bold transition-all relative ${activeTab === 'documents'
+                ? 'text-brand-primary'
+                : 'text-text-secondary hover:text-text-primary'
+                }`}
             >
-              Documentos do Processo
+              Documentos
               {activeTab === 'documents' && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-primary rounded-full animate-fade-in" />
               )}
