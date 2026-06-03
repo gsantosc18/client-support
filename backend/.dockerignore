@@ -1,0 +1,11 @@
+.git
+.gitignore
+node_modules
+*.exe
+*.test
+main
+coverage.out
+.env
+configs/*.yaml
+tmp/
+.gemini/

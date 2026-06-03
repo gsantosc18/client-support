@@ -20,3 +20,7 @@ O comando `make infra` irá:
 
 2. Acessar o App em http://localhost:3000
 3. Acessar o Backend em http://localhost:8080
+
+## Documentação Técnica e Infraestrutura
+
+Para detalhes avançados sobre a arquitetura de containerização, otimizações de build multi-stage/standalone, segurança (Hardening) e mapeamento de redes, consulte a [Documentação de Infraestrutura](file:///Users/gedalias.caldas/Documents/client-suport/docs/infra-containerization.md).

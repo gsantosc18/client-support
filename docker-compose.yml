@@ -21,6 +21,8 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    volumes:
+      - redisdata:/data
 
   backend:
     build:
@@ -45,10 +47,15 @@ services:
     build:
       context: ./app
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8080/api
     ports:
       - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:8080/api
+    depends_on:
+      - backend
 
 volumes:
   pgdata:
+  redisdata:
