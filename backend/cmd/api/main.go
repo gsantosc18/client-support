@@ -124,6 +124,34 @@ func main() {
 	}))
 
 	// Routes
+	app.Get("/health", func(c *fiber.Ctx) error {
+		sqlDB, err := db.DB()
+		dbStatus := "up"
+		if err != nil || sqlDB.Ping() != nil {
+			dbStatus = "down"
+		}
+
+		redisStatus := "up"
+		if err := rdb.Ping(context.Background()).Err(); err != nil {
+			redisStatus = "down"
+		}
+
+		statusCode := fiber.StatusOK
+		statusText := "healthy"
+		if dbStatus == "down" || redisStatus == "down" {
+			statusCode = fiber.StatusServiceUnavailable
+			statusText = "unhealthy"
+		}
+
+		return c.Status(statusCode).JSON(fiber.Map{
+			"status": statusText,
+			"services": fiber.Map{
+				"database": fiber.Map{"status": dbStatus},
+				"redis":    fiber.Map{"status": redisStatus},
+			},
+		})
+	})
+
 	api := app.Group("/api")
 	auth := api.Group("/auth")
 
