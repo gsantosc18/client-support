@@ -88,3 +88,10 @@ Os comandos de orquestração de infraestrutura local são automatizados atravé
   make clean
   ```
   *(Remove containers, redes associadas e apaga totalmente os volumes nomeados `pgdata` e `redisdata` para um reset completo).*
+
+---
+
+## Deploy e Produção (Docker Swarm)
+
+Para obter detalhes sobre o deploy em produção, publicação de imagens no registry privado e orquestração de stack com Docker Swarm, acesse o [Guia de Deploy (Docker Swarm)](file:///Users/gedalias.caldas/Documents/client-suport/docs/deploy-swarm.md).
+

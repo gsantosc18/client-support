@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: rootpassword # Em produção, recomenda-se utilizar Docker Secrets
+      POSTGRES_DB: client_support
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager # Fixado no manager caso utilize armazenamento persistente local do host
+      restart_policy:
+        condition: on-failure
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redisdata:/data
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager # Mantém consistência e proximidade com o DB
+      restart_policy:
+        condition: on-failure
+
+  backend:
+    image: registry.advocase.site/client-support/backend:latest
+    environment:
+      - DATABASE_URL=host=db user=root password=rootpassword dbname=client_support port=5432 sslmode=disable TimeZone=UTC
+      - REDIS_URL=redis:6379
+      - LOCAL_STORAGE_PATH=/app/storage
+      - USE_S3=false
+    volumes:
+      - storage:/app/storage
+    ports:
+      - "8080:8080"
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        order: start-first
+      restart_policy:
+        condition: on-failure
+
+  app:
+    image: registry.advocase.site/client-support/app:latest
+    ports:
+      - "3000:3000"
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        order: start-first
+      restart_policy:
+        condition: on-failure
+
+volumes:
+  pgdata:
+  redisdata:
+  storage:
