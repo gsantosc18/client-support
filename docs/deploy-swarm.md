@@ -6,19 +6,27 @@ Este documento descreve o fluxo operacional para realizar o deploy em ambiente d
 
 ## 1. Fluxo de Publicação de Imagens (Registry)
 
-As imagens dos serviços são compiladas localmente ou via pipeline de CI/CD, tagueadas e publicadas no registry privado.
+As imagens dos serviços são publicadas no registry privado `registry.advocase.site`. A publicação pode ocorrer de duas formas: automática (recomendada para produção) ou manual (para testes locais rápidos).
 
-### Passo 1.1: Autenticação
-Antes de enviar as imagens, efetue a autenticação no registry privado:
+### 1.1. Fluxo Automático via CI/CD (Recomendado)
+Sempre que uma nova **Release** é publicada no GitHub, um workflow de CI/CD compila, tagueia e sobe as imagens automaticamente. 
+
+Para detalhes de configuração das chaves de segurança e funcionamento do workflow, consulte a [Documentação de CI/CD](file:///Users/gedalias.caldas/Documents/client-suport/docs/ci-cd.md).
+
+### 1.2. Fluxo Manual (Alternativa para Desenvolvimento/Teste)
+
+Se precisar gerar e subir as imagens manualmente a partir da sua máquina local:
+
+#### Passo 1.2.1: Autenticação
+Efetue a autenticação no registry privado:
 ```bash
 docker login registry.advocase.site
 ```
-Insira as credenciais de acesso quando solicitado.
 
-### Passo 1.2: Compilação e Identificação (Build & Tag)
+#### Passo 1.2.2: Compilação e Identificação (Build & Tag)
 O Docker Swarm necessita que as imagens estejam acessíveis no registry para serem distribuídas entre os nós do cluster.
 
-#### Backend (Golang)
+##### Backend (Golang)
 Compile o backend a partir do diretório raiz do projeto:
 ```bash
 docker build \
@@ -26,8 +34,8 @@ docker build \
   ./backend
 ```
 
-#### Frontend (Next.js App)
-O build do frontend requer a definição da URL da API produtiva. Substitua o valor abaixo pela URL real de produção:
+##### Frontend (Next.js App)
+O build do frontend requer a definição da URL da API produtiva:
 ```bash
 docker build \
   --build-arg NEXT_PUBLIC_API_URL=https://api.advocase.site/api \
@@ -35,12 +43,13 @@ docker build \
   ./app
 ```
 
-### Passo 1.3: Publicação (Push)
+#### Passo 1.2.3: Publicação (Push)
 Envie as imagens tagueadas para o registry privado:
 ```bash
 docker push registry.advocase.site/client-support/backend:latest
 docker push registry.advocase.site/client-support/app:latest
 ```
+
 
 ---
 
