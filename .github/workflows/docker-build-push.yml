@@ -7,6 +7,7 @@ on:
 jobs:
   build-backend:
     name: Build & Push Backend
+    environment: dev
     runs-on: ubuntu-latest
     permissions:
       contents: read
