@@ -40,6 +40,7 @@ jobs:
 
   build-frontend:
     name: Build & Push Frontend
+    environment: dev
     runs-on: ubuntu-latest
     permissions:
       contents: read
