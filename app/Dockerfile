@@ -12,9 +12,17 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Recebe a URL da API no build-time para embutir nos arquivos estáticos compiled
+# Recebe a URL da API e ID da empresa no build-time para embutir nos arquivos estáticos compiled
 ARG BACKEND_URL=http://localhost:8080/api
+ARG NEXT_PUBLIC_COMPANY_ID
+
+# Validação: Quebra o build se NEXT_PUBLIC_COMPANY_ID estiver vazio
+RUN if [ -z "$NEXT_PUBLIC_COMPANY_ID" ]; then \
+      echo "ERRO: O argumento de build NEXT_PUBLIC_COMPANY_ID é obrigatório e não foi fornecido!" && exit 1; \
+    fi
+
 ENV BACKEND_URL=$BACKEND_URL
+ENV NEXT_PUBLIC_COMPANY_ID=$NEXT_PUBLIC_COMPANY_ID
 ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN npm run build

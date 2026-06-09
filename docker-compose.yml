@@ -50,6 +50,7 @@ services:
       dockerfile: Dockerfile
       args:
         - BACKEND_URL=http://localhost:8080/api
+        - NEXT_PUBLIC_COMPANY_ID=11111111-1111-1111-1111-111111111111
     ports:
       - "3000:3000"
     environment:
