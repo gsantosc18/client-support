@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -78,7 +79,8 @@ func main() {
 
 	// Repositories
 	userRepo := postgres.NewUserRepository(db)
-	companyRepo := postgres.NewCompanyRepository(db)
+	rawCompanyRepo := postgres.NewCompanyRepository(db)
+	companyRepo := redis.NewCompanyRepository(rawCompanyRepo, rdb, 24*time.Hour)
 	blacklistRepo := redis.NewTokenBlacklist(rdb)
 	clientRepo := postgres.NewClientRepository(db)
 	processRepo := postgres.NewProcessRepository(db)
@@ -93,6 +95,7 @@ func main() {
 	estService := service.NewEstablishmentService(estRepo, companyRepo)
 	processService := service.NewProcessService(processRepo, clientRepo, userRepo, companyRepo, estRepo)
 	userService := service.NewUserService(userRepo)
+	companyService := service.NewCompanyService(companyRepo)
 	annoService := service.NewAnnotationService(annoRepo, processRepo)
 	docService := service.NewDocumentService(docRepo, fileStorage, processRepo)
 
@@ -102,6 +105,7 @@ func main() {
 	estHandler := handlers.NewEstablishmentHandler(estService)
 	processHandler := handlers.NewProcessHandler(processService)
 	userHandler := handlers.NewUserHandler(userService)
+	companyHandler := handlers.NewCompanyHandler(companyService)
 	annoHandler := handlers.NewAnnotationHandler(annoService)
 	docHandler := handlers.NewDocumentHandler(docService)
 
@@ -175,6 +179,9 @@ func main() {
 	establishments := api.Group("/establishments", middleware.Protected(blacklistRepo))
 	establishments.Post("/", estHandler.Create)
 	establishments.Get("/", estHandler.List)
+
+	// Rota de Empresa
+	api.Get("/company", middleware.Protected(blacklistRepo), companyHandler.GetCompany)
 
 	// Rotas de Usuários / Operadores
 	users := api.Group("/users", middleware.Protected(blacklistRepo))

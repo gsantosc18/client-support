@@ -8,6 +8,22 @@ Esta documentação descreve as entidades de banco de dados e os endpoints da AP
 
 O banco de dados foi estruturado com isolamento de `company_id` (Multi-Tenancy) para todas as entidades principais.
 
+### 1.0. Tabela: `companies`
+Tabela que gerencia os inquilinos (tenants) cadastrados no sistema.
+* **id**: `CHAR(36)` (Chave Primária, gerada via `(UUID())`)
+* **name**: `VARCHAR(255)` (Nome comercial da empresa, Obrigatório)
+* **status**: `VARCHAR(50)` (Enum: `ACTIVE`, `INACTIVE`, Default: `'ACTIVE'`)
+* **created_at**: `TIMESTAMP` (Data de criação UTC)
+* **updated_at**: `TIMESTAMP` (Data de atualização UTC)
+
+**Estratégia de Caching de Banco de Dados**:
+Para reduzir a latência de consultas frequentes por ID de empresa (realizadas no cabeçalho e na validação de tenancy), implementamos cache Redis com o seguinte padrão:
+* **Chave**: `company:<company_uuid>`
+* **Tipo**: String contendo o JSON serializado da empresa.
+* **TTL (Time To Live)**: 24 horas.
+
+---
+
 ### 1.1. Tabela: `clients`
 Tabela que armazena os clientes atendidos pelas empresas.
 * **id**: `CHAR(36)` (Chave Primária, gerada via `(UUID())`)
@@ -339,7 +355,26 @@ Todos os endpoints exigem envio do token JWT Bearer e inferem o `company_id` de 
 
 #### Excluir Documento (`DELETE /api/processes/:processId/documents/:documentId`)
 * Deleta permanentemente o registro de metadados do banco de dados (Hard Delete) e move o arquivo físico correspondente no S3/Storage para a subpasta `/trash` aplicando a tag `deleted: "true"` (Soft Delete físico).
-* **Respostas**:
+* Respostas:
   * `200 OK`: Removido logicamente do storage e fisicamente da tabela.
   * `403 Forbidden`: Violação de escopo multi-tenant.
 
+---
+
+### 2.6. Empresa (Company)
+
+#### Obter Informações da Empresa (`GET /api/company`)
+* Retorna as informações cadastrais da empresa logada no escopo do usuário autenticado.
+* **Respostas (200 OK)**:
+```json
+{
+  "id": "11111111-1111-1111-1111-111111111111",
+  "name": "Acme Corp",
+  "status": "ACTIVE",
+  "created_at": "2026-06-09T06:00:00Z",
+  "updated_at": "2026-06-09T06:00:00Z"
+}
+```
+* **Respostas de Erro**:
+  * `401 Unauthorized`: Se o token for inválido, ausente ou expirado.
+  * `404 Not Found`: Se a empresa não existir no banco.

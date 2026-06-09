@@ -3,16 +3,15 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useProcesses } from '../hooks/useProcesses';
-import { useAuth } from '@/features/auth/hooks/useAuth';
 import { ProcessStatusBadge } from '../components/ProcessStatusBadge';
 import { ProcessFilters } from '../components/ProcessFilters';
 import { Process } from '@/interfaces/process.interface';
 import { Button } from '@/components/forms/Button';
 import { ProcessDeleteModal } from '../components/ProcessDeleteModal';
+import { Header } from '@/components/Header';
 
 export const ProcessListPage: React.FC = () => {
   const router = useRouter();
-  const { handleLogout } = useAuth();
   const {
     loading,
     error,
@@ -154,48 +153,7 @@ export const ProcessListPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background-primary flex flex-col relative">
-      {/* Barra de Navegação Superior Premium */}
-      <header className="bg-background-surface border-b border-border-default shadow-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-action-primary flex items-center justify-center text-text-primary font-bold text-lg shadow-sm">
-                P
-              </div>
-              <span className="font-bold text-text-primary tracking-tight text-lg">
-                Suporte<span className="text-action-primary font-medium">Cliente</span>
-              </span>
-            </div>
-
-            <nav className="flex items-center gap-4 border-l border-border-default pl-6">
-              <button
-                onClick={() => router.push('/clients')}
-                className="text-sm font-medium text-text-secondary hover:text-action-primary transition-colors"
-              >
-                Clientes
-              </button>
-              <button
-                onClick={() => router.push('/processes')}
-                className="text-sm font-bold text-action-primary transition-colors"
-              >
-                Processos
-              </button>
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => handleLogout()}
-              className="flex items-center gap-1.5 text-sm font-medium text-text-secondary hover:text-destructive transition-colors"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Sair
-            </button>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Conteúdo Principal */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">

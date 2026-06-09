@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { authService } from '../../../services/auth.service';
 import { setAuthTokens, logout } from '../../../state/authStore';
+import { navigateTo } from '../../../utils/navigation';
 
 export const useAuth = () => {
   const [loading, setLoading] = useState(false);
@@ -51,6 +52,7 @@ export const useAuth = () => {
     } finally {
       dispatch(logout());
       localStorage.removeItem('refreshToken');
+      navigateTo('/login');
     }
   };
 

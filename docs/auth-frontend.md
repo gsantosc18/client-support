@@ -10,11 +10,14 @@ O frontend foi desenvolvido em Next.js (App Router), focado na implementação d
 
 O módulo foi organizado utilizando o padrão Feature-Sliced Design:
 
-- `src/features/auth/hooks/useAuth.ts`: Hook customizado que abstrai as chamadas HTTP (usando `authService`), controla estados locais de carregamento e erro, e interage com o Redux para despachar ações como `setAuthTokens` e `logout`.
+- `src/features/auth/hooks/useAuth.ts`: Hook customizado que abstrai as chamadas HTTP (usando `authService`), controla estados locais de carregamento e erro, realiza o redirecionamento pós-logout, e interage com o Redux.
+- `src/features/company/hooks/useCompany.ts`: Hook customizado que gerencia o carregamento sob demanda do nome da empresa e coordena o cache Redux + Web Storage.
+- `src/features/company/services/company.service.ts`: Abstração de chamadas para a rota de consulta aos dados da empresa `/api/company`.
+- `src/components/Header.tsx`: Componente global e centralizado de cabeçalho superior que substitui os blocos duplicados de navbar e exibe o logo reativo e nome da empresa.
 - `src/services/api.ts`: Instância customizada do Axios configurada com Interceptors. O interceptor de `request` anexa o `Access Token` nas requisições. O interceptor de `response` intercepta erros 401 e efetua o logout automático redirecionando o usuário.
 - `src/services/auth.service.ts`: Abstração de chamadas da API REST do backend para registrar, logar, solicitar link de recuperação e resetar senhas.
-- `src/state/slices/authSlice.ts`: Slice do Redux utilizando `@reduxjs/toolkit` para armazenar se o usuário está autenticado e guardar o `AccessToken`.
-- `src/utils/navigation.ts`: Utilitário de redirecionamento programático seguro contra SSR (Server-Side Rendering). Evita acidentes ao chamar `window.location` em ciclos de renderização do servidor Next.js.
+- `src/state/authStore.ts`: Store global e slice do Redux utilizando `@reduxjs/toolkit` para armazenar tokens de acesso, status de login, e cache em memória de `companyName`.
+- `src/utils/navigation.ts`: Utilitário de redirecionamento programático seguro contra SSR (Server-Side Rendering).
 
 ---
 
@@ -61,12 +64,12 @@ Todos os formulários que transitam dados e credenciais sensíveis (Login, Cadas
 Para evitar que o usuário seja desconectado e redirecionado para a página de login ao recarregar a página, implementamos um mecanismo híbrido de persistência e hidratação no Redux Store (`authStore.ts`):
 
 1. **Persistência Seletiva (Login)**:
-   - Se o usuário selecionar **"Manter-me logado"**, o `AccessToken` é persistido no `localStorage`.
-   - Se a opção estiver desmarcada, o `AccessToken` é armazenado no `sessionStorage` (destruído ao fechar a aba/navegador).
+   - Se o usuário selecionar **"Manter-me logado"**, o `AccessToken` e o `companyName` são persistidos no `localStorage`.
+   - Se a opção estiver desmarcada, o `AccessToken` e o `companyName` são armazenados no `sessionStorage` (destruídos ao fechar a aba/navegador).
 2. **Hidratação Inicial**:
-   - Ao iniciar a aplicação (client-side), a store do Redux é hidratada automaticamente tentando ler o `AccessToken` de ambas as storages.
+   - Ao iniciar a aplicação (client-side), a store do Redux é hidratada automaticamente tentando ler o `AccessToken` e o `companyName` de ambas as storages.
 3. **Limpeza Consistente**:
-   - Ao realizar logout voluntário ou receber uma resposta `401 Unauthorized` de qualquer endpoint protegido do backend, os tokens são limpos de forma consistente de ambas as storages (`localStorage` e `sessionStorage`).
+   - Ao realizar logout voluntário ou receber uma resposta `401 Unauthorized` de qualquer endpoint protegido do backend, os tokens e dados de empresa são limpos de forma consistente de ambas as storages (`localStorage` e `sessionStorage`).
 
 ---
 
@@ -81,7 +84,13 @@ Garante que a função `navigateTo` não executa em contextos de servidor e cham
 Simula respostas da API HTTP do Axios para testar se tokens de autorização são mapeados devidamente nos headers e se retornos `401 Unauthorized` limpam a store do Redux e realizam o redirecionamento.
 
 ### 3. Testes do Redux Slice
-Valida todas as transições de estado do slice de autenticação (`setAuthTokens`, `clearAuthTokens`).
+Valida todas as transições de estado do slice de autenticação (`setAuthTokens`, `setCompany`, `logout` e testes de Web Storage de empresa).
+
+### 4. Testes de Análise de Cabeçalho (E2E Cypress)
+Um arquivo de teste em `cypress/e2e/app/company_header.cy.js` foi criado para certificar:
+* Exibição dinâmica da marca do cliente logado.
+* Funcionamento do cache silencioso que impede chamadas de rede redundantes a cada transição de rota.
+* Limpeza de dados de inquilino (tenant) e redirecionamento de login no logout.
 
 ### Comando para Execução
 ```bash
