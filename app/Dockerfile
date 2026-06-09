@@ -13,8 +13,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Recebe a URL da API no build-time para embutir nos arquivos estáticos compiled
-ARG NEXT_PUBLIC_API_URL=http://localhost:8080/api
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ARG BACKEND_URL=http://localhost:8080/api
+ENV BACKEND_URL=$BACKEND_URL
 ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN npm run build

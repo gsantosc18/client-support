@@ -9,7 +9,7 @@ export const injectStore = (_store: AppStore) => {
 };
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: process.env.BACKEND_URL || 'http://localhost:8080/api',
 });
 
 api.interceptors.request.use((config) => {
