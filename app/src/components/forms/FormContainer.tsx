@@ -24,7 +24,7 @@ export const FormContainer: React.FC<FormContainerProps> = ({
       {...props}
     >
       {errorMessage && (
-        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm font-medium border border-destructive/20 animate-in fade-in duration-150">
+        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-red-600 text-sm font-medium border border-destructive/20 animate-in fade-in duration-150">
           {errorMessage}
         </div>
       )}

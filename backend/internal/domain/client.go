@@ -15,8 +15,8 @@ const (
 )
 
 type Client struct {
-	ID        uuid.UUID    `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
-	CompanyID uuid.UUID    `json:"company_id" gorm:"type:uuid;not null"`
+	ID        uuid.UUID    `json:"id" gorm:"type:char(36);primary_key;default:(uuid())"`
+	CompanyID uuid.UUID    `json:"company_id" gorm:"type:char(36);not null"`
 	Company   Company      `json:"company" gorm:"foreignKey:CompanyID"`
 	FullName  string       `json:"full_name" gorm:"not null"`
 	Email     *string      `json:"email" gorm:"default:null"`
@@ -32,8 +32,8 @@ type Client struct {
 
 type DeletedClient struct {
 	ID        int64     `json:"id" gorm:"primary_key;autoIncrement"`
-	Data      []byte    `json:"data" gorm:"type:jsonb;not null"`
-	DeletedAt time.Time `json:"deleted_at" gorm:"type:timestamp with time zone;default:CURRENT_TIMESTAMP"`
+	Data      []byte    `json:"data" gorm:"type:json;not null"`
+	DeletedAt time.Time `json:"deleted_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
 }
 
 type ClientRepository interface {

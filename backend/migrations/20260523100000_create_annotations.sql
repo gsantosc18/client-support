@@ -1,14 +1,14 @@
 -- +goose Up
 -- SQL in this section is executed when the migration is applied.
 CREATE TABLE annotations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    process_id UUID NOT NULL,
-    company_id UUID NOT NULL,
-    user_id UUID NOT NULL,
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    process_id CHAR(36) NOT NULL,
+    company_id CHAR(36) NOT NULL,
+    user_id CHAR(36) NOT NULL,
     annotation TEXT NOT NULL,
     visibility VARCHAR(10) NOT NULL DEFAULT 'PUBLIC',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     CONSTRAINT fk_annotations_process FOREIGN KEY (process_id) REFERENCES processes(id) ON DELETE CASCADE,
     CONSTRAINT fk_annotations_company FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE,

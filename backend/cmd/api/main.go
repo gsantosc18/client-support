@@ -24,7 +24,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	gormpostgres "gorm.io/driver/postgres"
+	gormmysql "gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -39,7 +39,7 @@ func main() {
 	utils.SetJWTSecret(cfg.JWT.Secret)
 
 	// Database Connection
-	db, err := gorm.Open(gormpostgres.Open(cfg.Database.URL), &gorm.Config{})
+	db, err := gorm.Open(gormmysql.Open(cfg.Database.URL), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Falha ao conectar no banco de dados:", err)
 	}

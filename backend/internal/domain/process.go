@@ -18,12 +18,12 @@ const (
 )
 
 type Process struct {
-	ID              uuid.UUID     `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
-	CompanyID       uuid.UUID     `json:"company_id" gorm:"type:uuid;not null"`
+	ID              uuid.UUID     `json:"id" gorm:"type:char(36);primary_key;default:(uuid())"`
+	CompanyID       uuid.UUID     `json:"company_id" gorm:"type:char(36);not null"`
 	Company         Company       `json:"company" gorm:"foreignKey:CompanyID"`
-	UserID          uuid.UUID     `json:"user_id" gorm:"type:uuid;not null"`
+	UserID          uuid.UUID     `json:"user_id" gorm:"type:char(36);not null"`
 	User            User          `json:"user" gorm:"foreignKey:UserID"`
-	EstablishmentID uuid.UUID     `json:"establishment_id" gorm:"type:uuid;not null"`
+	EstablishmentID uuid.UUID     `json:"establishment_id" gorm:"type:char(36);not null"`
 	Establishment   Establishment `json:"establishment" gorm:"foreignKey:EstablishmentID"`
 	Protocol        *string       `json:"protocol" gorm:"default:null"`
 	Observation     *string       `json:"observation" gorm:"default:null"`
@@ -42,8 +42,8 @@ type ProcessRepository interface {
 }
 
 type DeletedProcess struct {
-	ID        uuid.UUID `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
-	Data      []byte    `json:"data" gorm:"type:jsonb;not null"`
-	DeletedAt time.Time `json:"deleted_at" gorm:"type:timestamp with time zone;default:CURRENT_TIMESTAMP"`
+	ID        uuid.UUID `json:"id" gorm:"type:char(36);primary_key;default:(uuid())"`
+	Data      []byte    `json:"data" gorm:"type:json;not null"`
+	DeletedAt time.Time `json:"deleted_at" gorm:"type:timestamp;default:CURRENT_TIMESTAMP"`
 }
 

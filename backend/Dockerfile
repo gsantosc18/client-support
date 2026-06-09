@@ -44,4 +44,4 @@ USER appuser
 EXPOSE 8080
 
 # Inicializa executando migrations e depois o app
-CMD ["sh", "-c", "goose -dir ./migrations postgres \"$DATABASE_URL\" up && ./main"]
+CMD ["sh", "-c", "goose -dir ./migrations mysql \"$DATABASE_URL\" up && ./main"]

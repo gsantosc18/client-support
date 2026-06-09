@@ -2,13 +2,12 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:15-alpine
+    image: mariadb:10.11
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: rootpassword # Em produção, recomenda-se utilizar Docker Secrets
-      POSTGRES_DB: client_support
+      MARIADB_ROOT_PASSWORD: rootpassword # Em produção, recomenda-se utilizar Docker Secrets
+      MARIADB_DATABASE: client_support
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - mariadbdata:/var/lib/mysql
     deploy:
       placement:
         constraints:
@@ -30,7 +29,7 @@ services:
   backend:
     image: registry.advocase.site/client-support/backend:latest
     environment:
-      - DATABASE_URL=host=db user=root password=rootpassword dbname=client_support port=5432 sslmode=disable TimeZone=UTC
+      - DATABASE_URL=root:rootpassword@tcp(db:3306)/client_support?charset=utf8mb4&parseTime=True&loc=Local
       - REDIS_URL=redis:6379
       - LOCAL_STORAGE_PATH=/app/storage
       - USE_S3=false
@@ -67,6 +66,6 @@ services:
         condition: on-failure
 
 volumes:
-  pgdata:
+  mariadbdata:
   redisdata:
   storage:

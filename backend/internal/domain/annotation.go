@@ -22,10 +22,10 @@ var (
 )
 
 type Annotation struct {
-	ID         uuid.UUID            `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
-	ProcessID  uuid.UUID            `json:"process_id" gorm:"type:uuid;not null"`
-	CompanyID  uuid.UUID            `json:"company_id" gorm:"type:uuid;not null"`
-	UserID     uuid.UUID            `json:"user_id" gorm:"type:uuid;not null"`
+	ID         uuid.UUID            `json:"id" gorm:"type:char(36);primary_key;default:(uuid())"`
+	ProcessID  uuid.UUID            `json:"process_id" gorm:"type:char(36);not null"`
+	CompanyID  uuid.UUID            `json:"company_id" gorm:"type:char(36);not null"`
+	UserID     uuid.UUID            `json:"user_id" gorm:"type:char(36);not null"`
 	Annotation string               `json:"annotation" gorm:"type:text;not null"`
 	Visibility AnnotationVisibility `json:"visibility" gorm:"type:varchar(10);not null;default:'PUBLIC'"`
 	CreatedAt  time.Time            `json:"created_at"`

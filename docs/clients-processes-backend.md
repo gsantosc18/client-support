@@ -4,14 +4,14 @@ Esta documentação descreve as entidades de banco de dados e os endpoints da AP
 
 ---
 
-## 1. Banco de Dados: Entidades PostgreSQL
+## 1. Banco de Dados: Entidades MariaDB
 
 O banco de dados foi estruturado com isolamento de `company_id` (Multi-Tenancy) para todas as entidades principais.
 
 ### 1.1. Tabela: `clients`
 Tabela que armazena os clientes atendidos pelas empresas.
-* **id**: `UUID` (Chave Primária, gerada via `uuid_generate_v4()`)
-* **company_id**: `UUID` (Chave Estrangeira apontando para `companies(id)`, `ON DELETE RESTRICT`)
+* **id**: `CHAR(36)` (Chave Primária, gerada via `(UUID())`)
+* **company_id**: `CHAR(36)` (Chave Estrangeira apontando para `companies(id)`, `ON DELETE RESTRICT`)
 * **full_name**: `VARCHAR(255)` (Nome completo do cliente, Obrigatório)
 * **email**: `VARCHAR(255)` (Opcional, Único por empresa)
 * **phone**: `VARCHAR(50)` (Opcional)
@@ -20,8 +20,8 @@ Tabela que armazena os clientes atendidos pelas empresas.
 * **rg**: `VARCHAR(20)` (Opcional, Único por empresa)
 * **cnh**: `VARCHAR(20)` (Opcional, Único por empresa)
 * **status**: `VARCHAR(50)` (Enum: `ACTIVE`, `INACTIVE`, `SUSPENDED`, Default: `'ACTIVE'`)
-* **created_at**: `TIMESTAMPTZ` (Data de criação UTC)
-* **updated_at**: `TIMESTAMPTZ` (Data de atualização UTC)
+* **created_at**: `TIMESTAMP` (Data de criação UTC)
+* **updated_at**: `TIMESTAMP` (Data de atualização UTC)
 
 **Índices e Constraints**:
 * `uq_client_company_email`: Restrição única em `(company_id, email)`
@@ -34,14 +34,14 @@ Tabela que armazena os clientes atendidos pelas empresas.
 
 ### 1.2. Tabela: `establishments`
 Tabela que gerencia os estabelecimentos vinculados às empresas de apoio ao cliente (ex: CRAS, CREAS).
-* **id**: `UUID` (Chave Primária, gerada via `uuid_generate_v4()`)
-* **company_id**: `UUID` (Chave Estrangeira para `companies(id)`, `ON DELETE RESTRICT`)
+* **id**: `CHAR(36)` (Chave Primária, gerada via `(UUID())`)
+* **company_id**: `CHAR(36)` (Chave Estrangeira para `companies(id)`, `ON DELETE RESTRICT`)
 * **name**: `VARCHAR(255)` (Nome do estabelecimento, Obrigatório)
 * **address**: `VARCHAR(255)` (Endereço físico, Obrigatório)
 * **city**: `VARCHAR(100)` (Cidade, Obrigatório)
 * **state**: `VARCHAR(2)` (Estado/UF, Obrigatório)
-* **created_at**: `TIMESTAMPTZ` (Data de criação UTC)
-* **updated_at**: `TIMESTAMPTZ` (Data de atualização UTC)
+* **created_at**: `TIMESTAMP` (Data de criação UTC)
+* **updated_at**: `TIMESTAMP` (Data de atualização UTC)
 
 **Constraints & Unicidade**:
 * Restrição única em `(company_id, name)` para evitar estabelecimentos com o mesmo nome sob o mesmo inquilino.
@@ -50,15 +50,15 @@ Tabela que gerencia os estabelecimentos vinculados às empresas de apoio ao clie
 
 ### 1.3. Tabela: `processes`
 Tabela que gerencia as ações e processos abertos.
-* **id**: `UUID` (Chave Primária, gerada via `uuid_generate_v4()`)
-* **company_id**: `UUID` (Chave Estrangeira para `companies(id)`, `ON DELETE RESTRICT`)
-* **establishment_id**: `UUID` (Chave Estrangeira para `establishments(id)`, `ON DELETE RESTRICT`)
-* **user_id**: `UUID` (Chave Estrangeira para `users(id)`, `ON DELETE RESTRICT`)
+* **id**: `CHAR(36)` (Chave Primária, gerada via `(UUID())`)
+* **company_id**: `CHAR(36)` (Chave Estrangeira para `companies(id)`, `ON DELETE RESTRICT`)
+* **establishment_id**: `CHAR(36)` (Chave Estrangeira para `establishments(id)`, `ON DELETE RESTRICT`)
+* **user_id**: `CHAR(36)` (Chave Estrangeira para `users(id)`, `ON DELETE RESTRICT`)
 * **protocol**: `VARCHAR(255)` (Opcional, Código identificador ou protocolo do processo, Único por empresa)
 * **observation**: `TEXT` (Opcional, Observações gerais sobre o andamento)
 * **status**: `VARCHAR(50)` (Enum: `PENDING`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`, Default: `'PENDING'`)
-* **created_at**: `TIMESTAMPTZ` (Data de criação UTC)
-* **updated_at**: `TIMESTAMPTZ` (Data de atualização UTC)
+* **created_at**: `TIMESTAMP` (Data de criação UTC)
+* **updated_at**: `TIMESTAMP` (Data de atualização UTC)
 
 **Constraints**:
 * Restrição única em `(company_id, protocol)` se o protocolo for informado.
@@ -67,29 +67,29 @@ Tabela que gerencia as ações e processos abertos.
 
 ### 1.4. Tabela Associativa: `client_processes`
 Tabela muitos-para-muitos (M:N) ligando processos a múltiplos clientes da mesma empresa.
-* **process_id**: `UUID` (Chave Estrangeira apontando para `processes(id)`, `ON DELETE CASCADE`)
-* **client_id**: `UUID` (Chave Estrangeira apontando para `clients(id)`, `ON DELETE RESTRICT`)
+* **process_id**: `CHAR(36)` (Chave Estrangeira apontando para `processes(id)`, `ON DELETE CASCADE`)
+* **client_id**: `CHAR(36)` (Chave Estrangeira apontando para `clients(id)`, `ON DELETE RESTRICT`)
 
 ---
 
 ### 1.5. Tabela: `deleted_clients`
 Tabela de log e auditoria para armazenar dados cadastrais históricos completos de clientes excluídos fisicamente.
-* **id**: `BIGSERIAL` (Chave Primária)
-* **data**: `JSONB` (Dados completos serializados em JSON)
-* **deleted_at**: `TIMESTAMPTZ` (Default: `CURRENT_TIMESTAMP`)
+* **id**: `BIGINT AUTO_INCREMENT` (Chave Primária)
+* **data**: `JSON` (Dados completos serializados em JSON)
+* **deleted_at**: `TIMESTAMP` (Default: `CURRENT_TIMESTAMP`)
 
 ---
 
 ### 1.6. Tabela: `annotations`
 Tabela que gerencia as anotações e observações de acompanhamento interno dos processos.
-* **id**: `UUID` (Chave Primária, gerada via `uuid_generate_v4()`)
-* **company_id**: `UUID` (Chave Estrangeira apontando para `companies(id)`, `ON DELETE RESTRICT`)
-* **process_id**: `UUID` (Chave Estrangeira apontando para `processes(id)`, `ON DELETE CASCADE`)
-* **user_id**: `UUID` (Chave Estrangeira apontando para `users(id)`, `ON DELETE RESTRICT`)
+* **id**: `CHAR(36)` (Chave Primária, gerada via `(UUID())`)
+* **company_id**: `CHAR(36)` (Chave Estrangeira apontando para `companies(id)`, `ON DELETE RESTRICT`)
+* **process_id**: `CHAR(36)` (Chave Estrangeira apontando para `processes(id)`, `ON DELETE CASCADE`)
+* **user_id**: `CHAR(36)` (Chave Estrangeira apontando para `users(id)`, `ON DELETE RESTRICT`)
 * **annotation**: `TEXT` (Texto da anotação, limite sugerido de 2000 caracteres, Obrigatório)
 * **visibility**: `VARCHAR(50)` (Enum: `PUBLIC`, `PRIVATE`, Default: `'PUBLIC'`)
-* **created_at**: `TIMESTAMPTZ` (Data de criação UTC)
-* **updated_at**: `TIMESTAMPTZ` (Data de atualização UTC)
+* **created_at**: `TIMESTAMP` (Data de criação UTC)
+* **updated_at**: `TIMESTAMP` (Data de atualização UTC)
 
 **Índices e Otimização**:
 * Índice composto em `(process_id, company_id)` para otimizar a leitura cronológica das notas de cada processo de inquilinos diferentes.
@@ -98,17 +98,17 @@ Tabela que gerencia as anotações e observações de acompanhamento interno dos
 
 ### 1.7. Tabela: `documents`
 Tabela que gerencia os metadados dos arquivos e documentos anexados aos processos.
-* **id**: `UUID` (Chave Primária, gerada via `uuid_generate_v4()`)
-* **company_id**: `UUID` (Chave Estrangeira apontando para `companies(id)`, `ON DELETE CASCADE`)
-* **process_id**: `UUID` (Chave Estrangeira apontando para `processes(id)`, `ON DELETE CASCADE`)
-* **user_id**: `UUID` (Chave Estrangeira apontando para `users(id)`, `ON DELETE RESTRICT`)
+* **id**: `CHAR(36)` (Chave Primária, gerada via `(UUID())`)
+* **company_id**: `CHAR(36)` (Chave Estrangeira apontando para `companies(id)`, `ON DELETE CASCADE`)
+* **process_id**: `CHAR(36)` (Chave Estrangeira apontando para `processes(id)`, `ON DELETE CASCADE`)
+* **user_id**: `CHAR(36)` (Chave Estrangeira apontando para `users(id)`, `ON DELETE RESTRICT`)
 * **name**: `VARCHAR(255)` (Nome do documento para exibição, Obrigatório)
 * **description**: `TEXT` (Descrição opcional sobre o arquivo)
 * **file_path**: `VARCHAR(512)` (Caminho relativo único físico do arquivo no storage, Obrigatório)
 * **file_type**: `VARCHAR(100)` (MIME-Type do arquivo, ex: `application/pdf`, Obrigatório)
 * **file_size**: `BIGINT` (Tamanho em bytes do arquivo físico, Obrigatório)
-* **created_at**: `TIMESTAMPTZ` (Data de criação UTC)
-* **updated_at**: `TIMESTAMPTZ` (Data de atualização UTC)
+* **created_at**: `TIMESTAMP` (Data de criação UTC)
+* **updated_at**: `TIMESTAMP` (Data de atualização UTC)
 
 **Índices e Otimização**:
 * Índice composto em `(process_id, company_id)` acelerando consultas e garantindo multitenancy eficiente.

@@ -7,15 +7,15 @@ import (
 	"github.com/client-support/backend/internal/domain"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	gormpostgres "gorm.io/driver/postgres"
+	gormmysql "gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 func TestCompanyRepository(t *testing.T) {
-	dsn := "host=localhost user=root password=rootpassword dbname=client_support port=5432 sslmode=disable TimeZone=UTC"
-	db, err := gorm.Open(gormpostgres.Open(dsn), &gorm.Config{})
+	dsn := "root:rootpassword@tcp(localhost:3306)/client_support?charset=utf8mb4&parseTime=True&loc=Local"
+	db, err := gorm.Open(gormmysql.Open(dsn), &gorm.Config{})
 	if err != nil {
-		t.Skip("PostgreSQL not running at localhost:5432, skipping company repo integration test")
+		t.Skip("MariaDB not running at localhost:3306, skipping company repo integration test")
 		return
 	}
 

@@ -15,14 +15,14 @@ graph TD
     User([Navegador do Usuário]) -->|Porta 3000| Front[Frontend Next.js]
     User -->|Porta 8080| Back[Backend Golang Fiber]
     Front -->|DNS Interno: http://backend:8080| Back
-    Back -->|DNS Interno: postgres://db:5432| DB[(PostgreSQL 15)]
+    Back -->|DNS Interno: mysql://db:3306| DB[(MariaDB 10.11)]
     Back -->|DNS Interno: redis:6379| RD[(Redis 7)]
 ```
 
 ### 1. Banco de Dados (`db`)
-* **Imagem**: `postgres:15-alpine`
-* **Persistência**: Volume nomeado `pgdata` montado em `/var/lib/postgresql/data`.
-* **Healthcheck**: Comando `pg_isready` executado a cada 5 segundos para atestar prontidão.
+* **Imagem**: `mariadb:10.11`
+* **Persistência**: Volume nomeado `mariadbdata` montado em `/var/lib/mysql`.
+* **Healthcheck**: Comando `mariadb-admin ping` executado a cada 5 segundos para atestar prontidão.
 
 ### 2. Cache e Sessão (`redis`)
 * **Imagem**: `redis:7-alpine`
@@ -31,7 +31,7 @@ graph TD
 ### 3. Backend API (`backend`)
 * **Imagem de Produção**: Alpine minimal com binário estático compilado via Go.
 * **Porta Exposta**: `8080` (HTTP).
-* **Endpoint de Monitoramento (`GET /health`)**: Expõe em tempo real o status de conexão com PostgreSQL e Redis:
+* **Endpoint de Monitoramento (`GET /health`)**: Expõe em tempo real o status de conexão com MariaDB e Redis:
   * **Retorno de Sucesso (HTTP 200)**: `{"status":"healthy","services":{"database":{"status":"up"},"redis":{"status":"up"}}}`
   * **Retorno de Erro (HTTP 503)**: Caso algum banco caia, retorna status de falha com código 503.
 
@@ -62,7 +62,7 @@ Para ambientes produtivos, o projeto adota receitas de Dockerfile com foco em ot
 ## Diretrizes de Segurança (Hardening)
 
 1. **Usuários Não-Privilegiados**: Nenhum container de aplicação roda sob privilégios de `root` (UID 0) em produção. O Frontend utiliza o usuário nativo `nextjs` e o Backend utiliza o usuário `appuser` criado no build.
-2. **Isolamento de Redes**: As portas das persistências (`5432` do Postgres e `6379` do Redis) são abertas apenas para desenvolvimento local e protegidas dentro da rede virtual Bridge interna em produção.
+2. **Isolamento de Redes**: As portas das persistências (`3306` do MariaDB e `6379` do Redis) são abertas apenas para desenvolvimento local e protegidas dentro da rede virtual Bridge interna em produção.
 3. **Imagens Base Alpine**: Reduz o vetor de CVEs por não conter ferramentas e utilitários supérfluos no runtime final do container.
 
 ---
@@ -81,13 +81,13 @@ Os comandos de orquestração de infraestrutura local são automatizados atravé
   ```bash
   make down
   ```
-  *(Para todos os containers sem deletar os dados persistidos no Postgres e Redis).*
+  *(Para todos os containers sem deletar os dados persistidos no MariaDB e Redis).*
 
 * **Resetar e limpar infraestrutura**:
   ```bash
   make clean
   ```
-  *(Remove containers, redes associadas e apaga totalmente os volumes nomeados `pgdata` e `redisdata` para um reset completo).*
+  *(Remove containers, redes associadas e apaga totalmente os volumes nomeados `mariadbdata` e `redisdata` para um reset completo).*
 
 ---
 

@@ -14,7 +14,7 @@ const (
 )
 
 type Company struct {
-	ID        uuid.UUID     `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
+	ID        uuid.UUID     `json:"id" gorm:"type:char(36);primary_key;default:(uuid())"`
 	Name      string        `json:"name" gorm:"not null"`
 	Status    CompanyStatus `json:"status" gorm:"not null;default:'ACTIVE'"`
 	CreatedAt time.Time     `json:"created_at"`

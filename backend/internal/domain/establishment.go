@@ -7,8 +7,8 @@ import (
 )
 
 type Establishment struct {
-	ID        uuid.UUID `json:"id" gorm:"type:uuid;primary_key;default:uuid_generate_v4()"`
-	CompanyID uuid.UUID `json:"company_id" gorm:"type:uuid;not null"`
+	ID        uuid.UUID `json:"id" gorm:"type:char(36);primary_key;default:(uuid())"`
+	CompanyID uuid.UUID `json:"company_id" gorm:"type:char(36);not null"`
 	Company   Company   `json:"company" gorm:"foreignKey:CompanyID"`
 	Name      string    `json:"name" gorm:"type:varchar(255);not null"`
 	Address   string    `json:"address" gorm:"type:text;not null"`

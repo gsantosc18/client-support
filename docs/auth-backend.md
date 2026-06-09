@@ -2,13 +2,13 @@
 
 ## Visão Geral
 
-O módulo de autenticação é responsável por gerenciar o ciclo de vida dos usuários (cadastro, login, recuperação de senha e logout). Foi desenvolvido em Golang utilizando o framework Fiber e GORM para persistência no PostgreSQL, além de Redis para gestão da Token Blacklist.
+O módulo de autenticação é responsável por gerenciar o ciclo de vida dos usuários (cadastro, login, recuperação de senha e logout). Foi desenvolvido em Golang utilizando o framework Fiber e GORM para persistência no MariaDB, além de Redis para gestão da Token Blacklist.
 
 ## Arquitetura
 
 O projeto adere ao **Clean Architecture**:
 - `internal/domain`: Contém as entidades principais (`User`, `Company`, `PasswordRecoveryToken`) e contratos de interface para os repositórios.
-- `internal/repository`: Implementações de acesso a dados (PostgreSQL com GORM e Redis para Blacklist).
+- `internal/repository`: Implementações de acesso a dados (MariaDB/MySQL com GORM e Redis para Blacklist).
 - `internal/service`: Contém as regras de negócio (`AuthService`, `EmailService`), assegurando que a lógica principal seja independente de frameworks web.
 - `internal/handlers`: Camada de entrega. O `auth_handler.go` processa requisições HTTP do Fiber.
 - `pkg/utils`: Utilitários isolados como criptografia (`bcrypt`), regras de validação de senha e geração de tokens JWT.
@@ -23,7 +23,7 @@ Para atender aos requisitos técnicos, as configurações do serviço são centr
 * **Módulo de Carregamento**: O pacote [internal/config](file:///Users/gedalias.caldas/Documents/client-suport/backend/internal/config/config.go) faz a busca do arquivo em múltiplos caminhos de busca para garantir a portabilidade de execução do binário e dos testes unitários e de integração.
 * **Sobrescrita por Variáveis de Ambiente**: O Viper realiza o binding automático e prioritário das seguintes variáveis de ambiente, com precedência sobre o arquivo YAML:
   * `PORT` -> `server.port` (Porta do servidor Fiber)
-  * `DATABASE_URL` -> `database.url` (DSN do PostgreSQL)
+  * `DATABASE_URL` -> `database.url` (DSN do MariaDB/MySQL)
   * `REDIS_URL` -> `redis.url` (Endereço do Redis)
   * `JWT_SECRET` -> `jwt.secret` (Segredo de assinatura dos tokens)
 
@@ -98,7 +98,7 @@ Focados em testar o comportamento de funções puras e regras de negócio sem ac
 - **HTTP Handler Isolation:** O Fiber router é instanciado de forma puramente isolada por caso de teste na pasta `handlers/http`, sem acoplamento de servidores físicos.
 
 ### 2. Testes de Integração com Banco e Redis
-- **GORM Transaction Rollback (PostgreSQL):** Conecta-se à base de dados local (`localhost:5432`). Roda todos os testes CRUD dentro de uma transação GORM (`db.Begin()`) que realiza Rollback completo ao final, mantendo o banco de dados impecável.
+- **GORM Transaction Rollback (MariaDB):** Conecta-se à base de dados local (`localhost:3306`). Roda todos os testes CRUD dentro de uma transação GORM (`db.Begin()`) que realiza Rollback completo ao final, mantendo o banco de dados impecável.
 - **Redis TTL-based testing:** Conecta-se ao Redis local (`localhost:6379`) para testar inserção e consulta da Blacklist. Roda com mecanismo de skipping robusto (`t.Skip`) caso as portas dos bancos locais estejam indisponíveis.
 
 ### Comando para Execução
