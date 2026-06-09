@@ -1,13 +1,16 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Input } from '@/components/forms/Input';
 import { Button } from '@/components/forms/Button';
 
-export default function RegisterPage() {
+function RegisterForm() {
+  const searchParams = useSearchParams();
+  const urlCompanyId = searchParams.get('company_id') || searchParams.get('companyId');
+
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -19,6 +22,15 @@ export default function RegisterPage() {
     terms_accepted: false,
     company_id: '11111111-1111-1111-1111-111111111111', // Default for test
   });
+
+  useEffect(() => {
+    if (urlCompanyId) {
+      setFormData((prev) => ({
+        ...prev,
+        company_id: urlCompanyId,
+      }));
+    }
+  }, [urlCompanyId]);
 
   const { handleRegister, loading, error } = useAuth();
   const router = useRouter();
@@ -112,5 +124,13 @@ export default function RegisterPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }

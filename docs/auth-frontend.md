@@ -56,6 +56,7 @@ Todos os formulários que transitam dados e credenciais sensíveis (Login, Cadas
 2. **Esqueci minha senha:** Em `/forgot-password`, após o envio do e-mail, se o usuário clicar no link recebido com o token, será redirecionado para `/reset-password?token=XXX`.
 3. **Pós-Login:** Após o login com sucesso, os tokens são recebidos. O `AccessToken` vai para o Redux State e é persistido de forma robusta no `localStorage` (se a opção "Manter-me logado" foi selecionada) ou no `sessionStorage` (comportamento padrão de aba). Isso previne a perda de sessão ao recarregar a página. O aplicativo então redireciona o usuário para `/clients`.
 4. **Pós-Cadastro:** Após sucesso em `/register`, o usuário é redirecionado de volta ao `/login?registered=true`, mostrando a tela de login.
+5. **Parâmetro de Inquilino/Empresa (company_id):** A página `/register` aceita o parâmetro de query `company_id` na URL (ex: `/register?company_id=XXX`). Quando informado, o formulário de cadastro é inicializado e enviado com esse identificador, vinculando o novo usuário à empresa especificada. Caso nenhum parâmetro seja enviado, o sistema assume o ID de empresa padrão do ambiente de testes (`11111111-1111-1111-1111-111111111111`).
 
 ---
 
