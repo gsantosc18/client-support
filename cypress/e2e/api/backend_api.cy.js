@@ -14,7 +14,8 @@ describe('Backend Auth API Integration Tests', () => {
       password: 'P@ssw0rd99!',
       password_confirm: 'P@ssw0rd99!',
       terms_accepted: true,
-      company_id: companyId
+      company_id: companyId,
+      access_code: 'test-passcode'
     };
   });
 

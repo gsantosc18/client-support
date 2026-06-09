@@ -1,21 +1,24 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { authService } from '@/services/auth.service';
 import { Input } from '@/components/forms/Input';
 import { Button } from '@/components/forms/Button';
 
-export default function ForgotPasswordPage() {
+function ForgotPasswordForm() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  const companyId = process.env.NEXT_PUBLIC_COMPANY_ID || '11111111-1111-1111-1111-111111111111';
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await authService.recoverPassword({ email, company_id: '11111111-1111-1111-1111-111111111111' });
+      const response = await authService.recoverPassword({ email, company_id: companyId });
       setMessage(response.message);
     } catch (err) {
       setMessage("Ocorreu um erro inesperado.");
@@ -66,12 +69,23 @@ export default function ForgotPasswordPage() {
           )}
           
           <div className="text-center text-sm">
-            <Link href="/login" className="font-semibold text-action-primary hover:text-action-hover transition-colors">
+            <Link 
+              href="/login" 
+              className="font-semibold text-action-primary hover:text-action-hover transition-colors"
+            >
               Voltar para o login
             </Link>
           </div>
         </form>
       </div>
     </div>
+  );
+}
+
+export default function ForgotPasswordPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <ForgotPasswordForm />
+    </Suspense>
   );
 }

@@ -12,7 +12,22 @@ module.exports = defineConfig({
     supportFile: "support/e2e.js",
     fixturesFolder: "fixtures",
     setupNodeEvents(on, config) {
-      // Plugins or events setup if needed
+      on('task', {
+        queryDb(sql) {
+          const mysql = require('mysql2/promise');
+          return (async () => {
+            const connection = await mysql.createConnection({
+              host: 'localhost',
+              user: 'root',
+              password: 'rootpassword',
+              database: 'client_support'
+            });
+            const [rows] = await connection.query(sql);
+            await connection.end();
+            return rows;
+          })();
+        }
+      });
     },
   },
 });

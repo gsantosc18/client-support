@@ -16,7 +16,8 @@ Cypress.Commands.add('registerUserDirectly', (user) => {
       password: user.password,
       password_confirm: user.password || user.password,
       terms_accepted: user.terms_accepted !== undefined ? user.terms_accepted : true,
-      company_id: companyId
+      company_id: companyId,
+      access_code: user.access_code || 'test-passcode' // default dev passcode if not specified
     },
     failOnStatusCode: false
   });

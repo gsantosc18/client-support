@@ -26,8 +26,19 @@ type User struct {
 	Company              Company    `json:"company" gorm:"foreignKey:CompanyID"`
 	FailedLoginAttempts  int        `json:"failed_login_attempts" gorm:"default:0"`
 	LockedUntil          *time.Time `json:"locked_until"`
+	Admin                bool       `json:"admin" gorm:"column:admin;not null;default:false"`
 	CreatedAt            time.Time  `json:"created_at"`
 	UpdatedAt            time.Time  `json:"updated_at"`
+}
+
+type UserInvitation struct {
+	ID        uuid.UUID `gorm:"type:char(36);primary_key;default:(uuid())"`
+	Email     string    `gorm:"not null"`
+	Token     string    `gorm:"not null;uniqueIndex"`
+	CompanyID uuid.UUID `gorm:"type:char(36);not null"`
+	ExpiresAt time.Time `gorm:"not null"`
+	Used      bool      `gorm:"default:false"`
+	CreatedAt time.Time
 }
 
 type PasswordRecoveryToken struct {
@@ -48,4 +59,7 @@ type UserRepository interface {
 	FindRecoveryToken(token string) (*PasswordRecoveryToken, error)
 	MarkRecoveryTokenUsed(id uuid.UUID) error
 	FindAllByCompany(companyID uuid.UUID) ([]*User, error)
+	SaveInvitation(invitation *UserInvitation) error
+	FindInvitationByToken(token string) (*UserInvitation, error)
+	MarkInvitationUsed(id uuid.UUID) error
 }

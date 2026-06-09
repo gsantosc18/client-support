@@ -80,6 +80,25 @@ func (m *MockUserRepository) FindAllByCompany(companyID uuid.UUID) ([]*domain.Us
 	return users, args.Error(1)
 }
 
+func (m *MockUserRepository) SaveInvitation(invitation *domain.UserInvitation) error {
+	args := m.Called(invitation)
+	return args.Error(0)
+}
+
+func (m *MockUserRepository) FindInvitationByToken(token string) (*domain.UserInvitation, error) {
+	args := m.Called(token)
+	var inv *domain.UserInvitation
+	if args.Get(0) != nil {
+		inv = args.Get(0).(*domain.UserInvitation)
+	}
+	return inv, args.Error(1)
+}
+
+func (m *MockUserRepository) MarkInvitationUsed(id uuid.UUID) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
+
 type MockCompanyRepository struct {
 	mock.Mock
 }
@@ -123,7 +142,7 @@ func setupTestApp() (*fiber.App, *MockUserRepository, *MockCompanyRepository, *M
 	mockBlacklistRepo := new(MockBlacklistRepo)
 	mockEmailService := new(MockEmailService)
 
-	authService := service.NewAuthService(mockUserRepo, mockCompanyRepo, mockEmailService, mockBlacklistRepo)
+	authService := service.NewAuthService(mockUserRepo, mockCompanyRepo, mockEmailService, mockBlacklistRepo, uuid.Nil, "", 24*time.Hour)
 	handler := NewAuthHandler(authService)
 
 	app.Post("/api/auth/register", handler.Register)
@@ -153,7 +172,7 @@ func TestAuthHandler(t *testing.T) {
 		mockUserRepo.On("FindByEmailAndCompany", "new@company.com", companyID).Return(nil, nil).Once()
 		mockUserRepo.On("Create", mock.Anything).Return(nil).Once()
 
-		authService := service.NewAuthService(mockUserRepo, mockCompanyRepo, new(MockEmailService), new(MockBlacklistRepo))
+		authService := service.NewAuthService(mockUserRepo, mockCompanyRepo, new(MockEmailService), new(MockBlacklistRepo), uuid.Nil, "", 24*time.Hour)
 		handler := NewAuthHandler(authService)
 		appRegister := fiber.New()
 		appRegister.Post("/api/auth/register", handler.Register)

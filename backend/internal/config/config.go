@@ -7,10 +7,13 @@ import (
 )
 
 type Config struct {
-	Server   ServerConfig   `mapstructure:"server"`
-	Database DatabaseConfig `mapstructure:"database"`
-	Redis    RedisConfig    `mapstructure:"redis"`
-	JWT      JWTConfig      `mapstructure:"jwt"`
+	Server             ServerConfig   `mapstructure:"server"`
+	Database           DatabaseConfig `mapstructure:"database"`
+	Redis              RedisConfig    `mapstructure:"redis"`
+	JWT                JWTConfig      `mapstructure:"jwt"`
+	CompanyID          string         `mapstructure:"company_id"`
+	AccessCode         string         `mapstructure:"access_code"`
+	InvitationDuration string         `mapstructure:"invitation_duration"`
 }
 
 type ServerConfig struct {
@@ -43,6 +46,9 @@ func Load() (*Config, error) {
 	_ = viper.BindEnv("database.url", "DATABASE_URL")
 	_ = viper.BindEnv("redis.url", "REDIS_URL")
 	_ = viper.BindEnv("jwt.secret", "JWT_SECRET")
+	_ = viper.BindEnv("company_id", "COMPANY_ID")
+	_ = viper.BindEnv("access_code", "REGISTRATION_ACCESS_CODE")
+	_ = viper.BindEnv("invitation_duration", "INVITATION_DURATION")
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
@@ -59,6 +65,9 @@ func Load() (*Config, error) {
 	// Fallback padrão se estiver vazio
 	if cfg.Server.Port == "" {
 		cfg.Server.Port = "8080"
+	}
+	if cfg.InvitationDuration == "" {
+		cfg.InvitationDuration = "24h"
 	}
 
 	return &cfg, nil

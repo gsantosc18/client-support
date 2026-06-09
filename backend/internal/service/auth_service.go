@@ -12,13 +12,16 @@ import (
 )
 
 type AuthService struct {
-	userRepo      domain.UserRepository
-	companyRepo   domain.CompanyRepository
-	emailService  EmailService
-	blacklistRepo interface { // simplified here, would ideally be an interface in domain
+	userRepo           domain.UserRepository
+	companyRepo        domain.CompanyRepository
+	emailService       EmailService
+	blacklistRepo      interface { // simplified here, would ideally be an interface in domain
 		Add(ctx context.Context, token string, expiration time.Duration) error
 		IsBlacklisted(ctx context.Context, token string) (bool, error)
 	}
+	companyID          uuid.UUID
+	accessCode         string
+	invitationDuration time.Duration
 }
 
 func NewAuthService(
@@ -29,12 +32,18 @@ func NewAuthService(
 		Add(ctx context.Context, token string, expiration time.Duration) error
 		IsBlacklisted(ctx context.Context, token string) (bool, error)
 	},
+	companyID uuid.UUID,
+	accessCode string,
+	invitationDuration time.Duration,
 ) *AuthService {
 	return &AuthService{
-		userRepo:      userRepo,
-		companyRepo:   companyRepo,
-		emailService:  emailService,
-		blacklistRepo: blacklistRepo,
+		userRepo:           userRepo,
+		companyRepo:        companyRepo,
+		emailService:       emailService,
+		blacklistRepo:      blacklistRepo,
+		companyID:          companyID,
+		accessCode:         accessCode,
+		invitationDuration: invitationDuration,
 	}
 }
 
@@ -48,6 +57,8 @@ type RegisterRequest struct {
 	PasswordConfirm string    `json:"password_confirm"`
 	CompanyID       uuid.UUID `json:"company_id"`
 	TermsAccepted   bool      `json:"terms_accepted"`
+	AccessCode      string    `json:"access_code"`
+	InvitationToken string    `json:"invitation_token"`
 }
 
 func (s *AuthService) Register(req RegisterRequest) error {
@@ -58,12 +69,35 @@ func (s *AuthService) Register(req RegisterRequest) error {
 		return errors.New("a senha e a confirmação devem ser iguais")
 	}
 
+	// Força o ID da empresa configurado se estiver definido nas variáveis de ambiente
+	if s.companyID != uuid.Nil {
+		req.CompanyID = s.companyID
+	}
+
 	company, err := s.companyRepo.FindByID(req.CompanyID)
 	if err != nil {
 		return errors.New("companhia inválida ou não encontrada")
 	}
 	if company.Status != domain.CompanyStatusActive {
 		return errors.New("a companhia informada não está ativa")
+	}
+
+	// Validação de segurança: Convite ou Código de Acesso
+	if req.InvitationToken != "" {
+		invitation, err := s.userRepo.FindInvitationByToken(req.InvitationToken)
+		if err != nil || invitation.Used || invitation.ExpiresAt.Before(time.Now()) {
+			return errors.New("convite inválido, expirado ou já utilizado")
+		}
+		if invitation.Email != req.Email {
+			return errors.New("o e-mail informado não corresponde ao e-mail convidado")
+		}
+		defer func() {
+			_ = s.userRepo.MarkInvitationUsed(invitation.ID)
+		}()
+	} else {
+		if s.accessCode != "" && req.AccessCode != s.accessCode {
+			return errors.New("código de acesso inválido")
+		}
 	}
 
 	existingUser, _ := s.userRepo.FindByEmailAndCompany(req.Email, req.CompanyID)
@@ -98,6 +132,45 @@ func (s *AuthService) Register(req RegisterRequest) error {
 	}
 
 	return s.userRepo.Create(user)
+}
+
+func (s *AuthService) ValidateInvitation(tokenStr string) (*domain.UserInvitation, error) {
+	invitation, err := s.userRepo.FindInvitationByToken(tokenStr)
+	if err != nil || invitation.Used || invitation.ExpiresAt.Before(time.Now()) {
+		return nil, errors.New("convite inválido, expirado ou já utilizado")
+	}
+	return invitation, nil
+}
+
+func (s *AuthService) CreateInvitation(email string, creatorID uuid.UUID) (*domain.UserInvitation, error) {
+	creator, err := s.userRepo.FindByID(creatorID)
+	if err != nil {
+		return nil, errors.New("criador não encontrado")
+	}
+	if !creator.Admin {
+		return nil, errors.New("apenas administradores podem criar convites")
+	}
+
+	existing, _ := s.userRepo.FindByEmailAndCompany(email, creator.CompanyID)
+	if existing != nil {
+		return nil, errors.New("já existe um usuário cadastrado com este e-mail na empresa")
+	}
+
+	token := uuid.New().String()
+	invitation := &domain.UserInvitation{
+		ID:        uuid.New(),
+		Email:     email,
+		Token:     token,
+		CompanyID: creator.CompanyID,
+		ExpiresAt: time.Now().Add(s.invitationDuration),
+	}
+
+	err = s.userRepo.SaveInvitation(invitation)
+	if err != nil {
+		return nil, errors.New("erro ao salvar convite")
+	}
+
+	return invitation, nil
 }
 
 func (s *AuthService) Login(email, password string, companyID uuid.UUID, keepMeLoggedIn bool) (*utils.TokenPair, error) {

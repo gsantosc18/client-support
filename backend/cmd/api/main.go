@@ -19,6 +19,7 @@ import (
 	"github.com/client-support/backend/internal/service"
 	"github.com/client-support/backend/internal/storage"
 	"github.com/client-support/backend/pkg/utils"
+	"github.com/google/uuid"
 	redisclient "github.com/redis/go-redis/v9"
 
 	"github.com/gofiber/fiber/v2"
@@ -88,9 +89,19 @@ func main() {
 	annoRepo := postgres.NewAnnotationRepository(db)
 	docRepo := postgres.NewDocumentRepository(db)
 
+	// Parse companyID and invitationDuration
+	parsedCompanyID, err := uuid.Parse(cfg.CompanyID)
+	if err != nil {
+		parsedCompanyID = uuid.MustParse("11111111-1111-1111-1111-111111111111")
+	}
+	invDuration, err := time.ParseDuration(cfg.InvitationDuration)
+	if err != nil {
+		invDuration = 24 * time.Hour
+	}
+
 	// Services
 	emailService := service.NewSMTPEmailService()
-	authService := service.NewAuthService(userRepo, companyRepo, emailService, blacklistRepo)
+	authService := service.NewAuthService(userRepo, companyRepo, emailService, blacklistRepo, parsedCompanyID, cfg.AccessCode, invDuration)
 	clientService := service.NewClientService(clientRepo, companyRepo, processRepo)
 	estService := service.NewEstablishmentService(estRepo, companyRepo)
 	processService := service.NewProcessService(processRepo, clientRepo, userRepo, companyRepo, estRepo)
@@ -163,6 +174,8 @@ func main() {
 	auth.Post("/login", authHandler.Login)
 	auth.Post("/forgot-password", authHandler.RecoverPassword)
 	auth.Post("/reset-password", authHandler.ResetPassword)
+	auth.Get("/validate-invitation", authHandler.ValidateInvitation)
+	auth.Post("/invitations", middleware.Protected(blacklistRepo), authHandler.CreateInvitation)
 	
 	// Rota de logout protegida pelo middleware JWT para invalidar e colocar na blacklist
 	auth.Post("/logout", middleware.Protected(blacklistRepo), authHandler.Logout)

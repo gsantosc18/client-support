@@ -63,3 +63,20 @@ func (r *UserRepository) FindAllByCompany(companyID uuid.UUID) ([]*domain.User, 
 	return users, err
 }
 
+func (r *UserRepository) SaveInvitation(invitation *domain.UserInvitation) error {
+	return r.db.Create(invitation).Error
+}
+
+func (r *UserRepository) FindInvitationByToken(token string) (*domain.UserInvitation, error) {
+	var invitation domain.UserInvitation
+	err := r.db.Where("token = ?", token).First(&invitation).Error
+	if err != nil {
+		return nil, err
+	}
+	return &invitation, nil
+}
+
+func (r *UserRepository) MarkInvitationUsed(id uuid.UUID) error {
+	return r.db.Model(&domain.UserInvitation{}).Where("id = ?", id).Update("used", true).Error
+}
+

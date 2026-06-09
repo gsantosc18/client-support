@@ -2,20 +2,18 @@ import api from './api';
 
 export const authService = {
   register: async (data: any) => {
-    // get company_id from somewhere or URL, for now let's pass it in data
-    const companyId = data.company_id || '11111111-1111-1111-1111-111111111111'; 
+    const companyId = process.env.NEXT_PUBLIC_COMPANY_ID || data.company_id || '11111111-1111-1111-1111-111111111111'; 
     const response = await api.post(`/auth/register?company_id=${companyId}`, data);
     return response.data;
   },
   login: async (data: any) => {
-    // Add default companyId just for testing, in real case should come from context/url
-    data.company_id = data.company_id || '11111111-1111-1111-1111-111111111111';
-    const response = await api.post('/auth/login', data);
+    const companyId = process.env.NEXT_PUBLIC_COMPANY_ID || data.company_id || '11111111-1111-1111-1111-111111111111';
+    const response = await api.post('/auth/login', { ...data, company_id: companyId });
     return response.data;
   },
-  recoverPassword: async (data: { email: string, company_id: string }) => {
-    data.company_id = data.company_id || '11111111-1111-1111-1111-111111111111';
-    const response = await api.post('/auth/forgot-password', data);
+  recoverPassword: async (data: { email: string, company_id?: string }) => {
+    const companyId = process.env.NEXT_PUBLIC_COMPANY_ID || data.company_id || '11111111-1111-1111-1111-111111111111';
+    const response = await api.post('/auth/forgot-password', { ...data, company_id: companyId });
     return response.data;
   },
   resetPassword: async (data: any) => {
@@ -24,6 +22,14 @@ export const authService = {
   },
   logout: async () => {
     const response = await api.post('/auth/logout');
+    return response.data;
+  },
+  validateInvitation: async (token: string) => {
+    const response = await api.get(`/auth/validate-invitation?token=${token}`);
+    return response.data;
+  },
+  createInvitation: async (email: string) => {
+    const response = await api.post('/auth/invitations', { email });
     return response.data;
   }
 };

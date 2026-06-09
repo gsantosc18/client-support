@@ -110,3 +110,42 @@ func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"message": "logout realizado com sucesso"})
 }
+
+func (h *AuthHandler) ValidateInvitation(c *fiber.Ctx) error {
+	token := c.Query("token")
+	if token == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "token não informado"})
+	}
+
+	invitation, err := h.authService.ValidateInvitation(token)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"valid":      true,
+		"email":      invitation.Email,
+		"company_id": invitation.CompanyID.String(),
+	})
+}
+
+func (h *AuthHandler) CreateInvitation(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(uuid.UUID)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "não autorizado"})
+	}
+
+	var req struct {
+		Email string `json:"email"`
+	}
+	if err := c.BodyParser(&req); err != nil || req.Email == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "e-mail inválido"})
+	}
+
+	invitation, err := h.authService.CreateInvitation(req.Email, userID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(invitation)
+}

@@ -86,6 +86,16 @@ export const Header: React.FC = () => {
             >
               Processos
             </button>
+            <button
+              onClick={() => router.push('/operators')}
+              className={`text-sm font-semibold transition-colors ${
+                pathname.startsWith('/operators')
+                  ? 'text-action-primary font-bold'
+                  : 'text-text-secondary hover:text-action-primary font-medium'
+              }`}
+            >
+              Operadores
+            </button>
           </nav>
         </div>
 

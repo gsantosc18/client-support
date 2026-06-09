@@ -6,10 +6,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Input } from '@/components/forms/Input';
 import { Button } from '@/components/forms/Button';
+import { authService } from '@/services/auth.service';
 
 function RegisterForm() {
   const searchParams = useSearchParams();
-  const urlCompanyId = searchParams.get('company_id') || searchParams.get('companyId');
+  const invitationToken = searchParams.get('invitation_token') || searchParams.get('invitationToken') || '';
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -20,17 +21,35 @@ function RegisterForm() {
     password: '',
     password_confirm: '',
     terms_accepted: false,
-    company_id: '11111111-1111-1111-1111-111111111111', // Default for test
+    company_id: process.env.NEXT_PUBLIC_COMPANY_ID || '11111111-1111-1111-1111-111111111111',
+    access_code: '',
+    invitation_token: '',
   });
 
+  const [checkingInvitation, setCheckingInvitation] = useState(false);
+  const [invitationError, setInvitationError] = useState<string | null>(null);
+
   useEffect(() => {
-    if (urlCompanyId) {
-      setFormData((prev) => ({
-        ...prev,
-        company_id: urlCompanyId,
-      }));
+    if (invitationToken) {
+      setCheckingInvitation(true);
+      setInvitationError(null);
+      authService.validateInvitation(invitationToken)
+        .then((res: any) => {
+          setFormData((prev) => ({
+            ...prev,
+            email: res.email,
+            company_id: res.company_id || prev.company_id,
+            invitation_token: invitationToken,
+          }));
+        })
+        .catch((err: any) => {
+          setInvitationError(err.response?.data?.error || 'Convite inválido, expirado ou já utilizado');
+        })
+        .finally(() => {
+          setCheckingInvitation(false);
+        });
     }
-  }, [urlCompanyId]);
+  }, [invitationToken]);
 
   const { handleRegister, loading, error } = useAuth();
   const router = useRouter();
@@ -56,6 +75,35 @@ function RegisterForm() {
     }
   };
 
+  if (checkingInvitation) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background-primary py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-xl w-full space-y-8 bg-background-surface p-8 rounded-xl shadow-sm border border-border-default text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-action-primary mx-auto"></div>
+          <p className="mt-4 text-text-secondary">Validando convite...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (invitationError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background-primary py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-xl w-full space-y-8 bg-background-surface p-8 rounded-xl shadow-sm border border-border-default text-center">
+          <div className="text-destructive text-red-600 font-medium text-lg mb-4">
+            ⚠️ {invitationError}
+          </div>
+          <p className="text-text-secondary text-sm mb-6">
+            Este link de convite pode ter expirado ou já ter sido usado para cadastrar um usuário.
+          </p>
+          <Link href="/login" className="inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-semibold text-white bg-action-primary hover:bg-action-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-focus-ring">
+            Voltar para o Login
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background-primary py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-xl w-full space-y-8 bg-background-surface p-8 rounded-xl shadow-sm border border-border-default">
@@ -63,6 +111,11 @@ function RegisterForm() {
           <h2 className="mt-6 text-center text-3xl font-bold text-text-primary">
             Crie sua conta
           </h2>
+          {invitationToken && (
+            <p className="mt-2 text-center text-sm text-green-600 font-medium">
+              Convite verificado com sucesso!
+            </p>
+          )}
         </div>
         <form className="mt-8 space-y-6" onSubmit={onSubmit} method="post">
           {error && (
@@ -76,11 +129,33 @@ function RegisterForm() {
             <Input label="Sobrenome" name="last_name" required value={formData.last_name} onChange={handleChange} />
             
             <div className="sm:col-span-2">
-              <Input label="E-mail" name="email" type="email" required value={formData.email} onChange={handleChange} />
+              <Input 
+                label="E-mail" 
+                name="email" 
+                type="email" 
+                required 
+                value={formData.email} 
+                onChange={handleChange} 
+                disabled={!!invitationToken}
+                className={invitationToken ? "bg-background-muted opacity-80 cursor-not-allowed" : ""}
+              />
             </div>
 
             <Input label="Telefone (opcional)" name="phone" type="tel" value={formData.phone} onChange={handleChange} />
             <Input label="Data de nascimento" name="birth_date" type="date" required value={formData.birth_date} onChange={handleChange} />
+
+            {!invitationToken && (
+              <div className="sm:col-span-2">
+                <Input 
+                  label="Código de Acesso" 
+                  name="access_code" 
+                  required 
+                  value={formData.access_code} 
+                  onChange={handleChange} 
+                  placeholder="Digite o código de acesso para cadastro"
+                />
+              </div>
+            )}
 
             <div className="sm:col-span-2">
               <Input label="Senha" name="password" type="password" required value={formData.password} onChange={handleChange} />

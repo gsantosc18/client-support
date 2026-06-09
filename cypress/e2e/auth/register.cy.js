@@ -24,6 +24,7 @@ describe('Cadastro de Usuário - E2E', () => {
     cy.get('input[name="last_name"]').type('Silva');
     cy.get('input[name="email"]').type(`joaosilva_${Date.now()}@acme.com`);
     cy.get('input[name="birth_date"]').type('1990-05-10');
+    cy.get('input[name="access_code"]').type('test-passcode');
     cy.get('input[name="password"]').type('Password123!');
     cy.get('input[name="password_confirm"]').type('Password123!');
     // Não marcamos termos_accepted
@@ -43,6 +44,7 @@ describe('Cadastro de Usuário - E2E', () => {
     cy.get('input[name="last_name"]').type('Silva');
     cy.get('input[name="email"]').type(`joaosilva_${Date.now()}@acme.com`);
     cy.get('input[name="birth_date"]').type('1990-05-10');
+    cy.get('input[name="access_code"]').type('test-passcode');
     cy.get('input[name="password"]').type('Password123!');
     cy.get('input[name="password_confirm"]').type('OutraSenha123!');
     cy.get('input[id="terms_accepted"]').check();
@@ -56,6 +58,7 @@ describe('Cadastro de Usuário - E2E', () => {
     cy.get('input[name="last_name"]').type('Silva');
     cy.get('input[name="email"]').type(`joaosilva_${Date.now()}@acme.com`);
     cy.get('input[name="birth_date"]').type('1990-05-10');
+    cy.get('input[name="access_code"]').type('test-passcode');
     cy.get('input[name="password"]').type('Pass1!');
     cy.get('input[name="password_confirm"]').type('Pass1!');
     cy.get('input[id="terms_accepted"]').check();
@@ -70,6 +73,7 @@ describe('Cadastro de Usuário - E2E', () => {
     cy.get('input[name="last_name"]').type('Silva');
     cy.get('input[name="email"]').type(email);
     cy.get('input[name="birth_date"]').type('1990-05-10');
+    cy.get('input[name="access_code"]').type('test-passcode');
     cy.get('input[name="password"]').type('Password!');
     cy.get('input[name="password_confirm"]').type('Password!');
     cy.get('input[id="terms_accepted"]').check();
@@ -84,6 +88,7 @@ describe('Cadastro de Usuário - E2E', () => {
     cy.get('input[name="last_name"]').type('Silva');
     cy.get('input[name="email"]').type(email);
     cy.get('input[name="birth_date"]').type('1990-05-10');
+    cy.get('input[name="access_code"]').type('test-passcode');
     cy.get('input[name="password"]').type('Password123');
     cy.get('input[name="password_confirm"]').type('Password123');
     cy.get('input[id="terms_accepted"]').check();
@@ -98,6 +103,7 @@ describe('Cadastro de Usuário - E2E', () => {
     cy.get('input[name="last_name"]').type('Silva');
     cy.get('input[name="email"]').type(email);
     cy.get('input[name="birth_date"]').type('1990-05-10');
+    cy.get('input[name="access_code"]').type('test-passcode');
     cy.get('input[name="password"]').type('password123!');
     cy.get('input[name="password_confirm"]').type('password123!');
     cy.get('input[id="terms_accepted"]').check();
@@ -112,6 +118,7 @@ describe('Cadastro de Usuário - E2E', () => {
     cy.get('input[name="last_name"]').type('Silva');
     cy.get('input[name="email"]').type(email);
     cy.get('input[name="birth_date"]').type('1990-05-10');
+    cy.get('input[name="access_code"]').type('test-passcode');
     cy.get('input[name="password"]').type('PASSWORD123!');
     cy.get('input[name="password_confirm"]').type('PASSWORD123!');
     cy.get('input[id="terms_accepted"]').check();
@@ -126,6 +133,7 @@ describe('Cadastro de Usuário - E2E', () => {
     cy.get('input[name="last_name"]').type('Silva');
     cy.get('input[name="email"]').type(email);
     cy.get('input[name="birth_date"]').type('1990-05-10');
+    cy.get('input[name="access_code"]').type('test-passcode');
     cy.get('input[name="password"]').type('Abcde12!'); // "abc" ou "bcd" é sequência
     cy.get('input[name="password_confirm"]').type('Abcde12!');
     cy.get('input[id="terms_accepted"]').check();
@@ -140,6 +148,7 @@ describe('Cadastro de Usuário - E2E', () => {
     cy.get('input[name="last_name"]').type('Silva');
     cy.get('input[name="email"]').type(email);
     cy.get('input[name="birth_date"]').type('1990-05-10');
+    cy.get('input[name="access_code"]').type('test-passcode');
     cy.get('input[name="password"]').type('Password123!'); // "123" é sequência
     cy.get('input[name="password_confirm"]').type('Password123!');
     cy.get('input[id="terms_accepted"]').check();
@@ -154,6 +163,7 @@ describe('Cadastro de Usuário - E2E', () => {
     cy.get('input[name="last_name"]').type('Silva');
     cy.get('input[name="email"]').type(email);
     cy.get('input[name="birth_date"]').type('1990-05-10');
+    cy.get('input[name="access_code"]').type('test-passcode');
     cy.get('input[name="password"]').type('João Silva1!');
     cy.get('input[name="password_confirm"]').type('João Silva1!');
     cy.get('input[id="terms_accepted"]').check();
@@ -168,6 +178,7 @@ describe('Cadastro de Usuário - E2E', () => {
     cy.get('input[name="last_name"]').type('Silva');
     cy.get('input[name="email"]').type(email);
     cy.get('input[name="birth_date"]').type('1990-05-10');
+    cy.get('input[name="access_code"]').type('test-passcode');
     
     // Senha forte que contém o e-mail completo e um número (1) para passar no hasNumber
     const strongPasswordWithEmail = `P@ss1_${email}`;
@@ -187,6 +198,7 @@ describe('Cadastro de Usuário - E2E', () => {
     cy.get('input[name="email"]').type(email);
     cy.get('input[name="phone"]').type('11987654321');
     cy.get('input[name="birth_date"]').type('1988-12-05');
+    cy.get('input[name="access_code"]').type('test-passcode');
     // Senha forte: tem 8+ chars, maiúscula, minúscula, número, especial, sem sequências de 3, sem nome/email
     cy.get('input[name="password"]').type('P@ssw0rd99!');
     cy.get('input[name="password_confirm"]').type('P@ssw0rd99!');
@@ -207,6 +219,7 @@ describe('Cadastro de Usuário - E2E', () => {
     cy.get('input[name="last_name"]').type('Lima');
     cy.get('input[name="email"]').type(email);
     cy.get('input[name="birth_date"]').type('1995-02-15');
+    cy.get('input[name="access_code"]').type('test-passcode');
     cy.get('input[name="password"]').type('P@ssw0rd99!');
     cy.get('input[name="password_confirm"]').type('P@ssw0rd99!');
     cy.get('input[id="terms_accepted"]').check();
@@ -220,6 +233,7 @@ describe('Cadastro de Usuário - E2E', () => {
     cy.get('input[name="last_name"]').type('Lima');
     cy.get('input[name="email"]').type(email);
     cy.get('input[name="birth_date"]').type('1995-02-15');
+    cy.get('input[name="access_code"]').type('test-passcode');
     cy.get('input[name="password"]').type('P@ssw0rd99!');
     cy.get('input[name="password_confirm"]').type('P@ssw0rd99!');
     cy.get('input[id="terms_accepted"]').check();
@@ -228,4 +242,94 @@ describe('Cadastro de Usuário - E2E', () => {
     // Deve exibir mensagem do backend sobre e-mail duplicado
     cy.get('.text-red-600').should('contain.text', 'já existe um usuário com este e-mail na companhia');
   });
+
+  it('deve exigir o código de acesso quando não houver convite e falhar se incorreto', () => {
+    const email = `passcode_err_${Date.now()}@acme.com`;
+    
+    cy.get('input[name="first_name"]').type('João');
+    cy.get('input[name="last_name"]').type('Silva');
+    cy.get('input[name="email"]').type(email);
+    cy.get('input[name="birth_date"]').type('1990-05-10');
+    cy.get('input[name="access_code"]').type('CodigoIncorreto');
+    cy.get('input[name="password"]').type('P@ssw0rd99!');
+    cy.get('input[name="password_confirm"]').type('P@ssw0rd99!');
+    cy.get('input[id="terms_accepted"]').check();
+    cy.get('button[type="submit"]').click();
+
+    cy.get('.text-red-600').should('be.visible');
+  });
+
+  it('deve exibir erro para token de convite inválido ou inexistente', () => {
+    cy.visit('/register?invitation_token=token-invalido-qualquer');
+    cy.get('.text-destructive').should('contain.text', 'convite inválido, expirado ou já utilizado');
+  });
+
+  it('deve permitir cadastro com sucesso a partir de um convite válido', () => {
+    // 1. Cadastra um administrador
+    const adminEmail = `admin_inv_${Date.now()}@acme.com`;
+    const adminUser = {
+      first_name: 'Admin',
+      last_name: 'User',
+      email: adminEmail,
+      password: 'P@ssw0rd99!',
+      company_id: companyId
+    };
+
+    cy.registerUserDirectly(adminUser).then(() => {
+      // Promove o usuário recém-criado a admin via tarefa de banco de dados
+      cy.task('queryDb', `UPDATE users SET admin = true WHERE email = '${adminEmail}'`).then(() => {
+        // Login do admin para gerar o token de convite
+        const backendUrl = Cypress.env('backendUrl');
+        cy.request({
+          method: 'POST',
+          url: `${backendUrl}/api/auth/login`,
+          body: {
+            email: adminEmail,
+            password: adminUser.password,
+            company_id: companyId
+          }
+        }).then((loginRes) => {
+          const token = loginRes.body.access_token;
+          const invitedEmail = `invited_${Date.now()}@acme.com`;
+
+          // Posta solicitação de convite utilizando token de acesso do admin
+          cy.request({
+            method: 'POST',
+            url: `${backendUrl}/api/auth/invitations`,
+            headers: {
+              Authorization: `Bearer ${token}`
+            },
+            body: {
+              email: invitedEmail
+            }
+          }).then((inviteRes) => {
+            const invitationToken = inviteRes.body.Token;
+
+            // 2. Visita a página de registro usando o token gerado
+            cy.visit(`/register?invitation_token=${invitationToken}`);
+
+            // Verifica se a tela exibe o e-mail pré-preenchido e bloqueado
+            cy.get('input[name="email"]').should('have.value', invitedEmail);
+            cy.get('input[name="email"]').should('be.disabled');
+
+            // Preenche os dados e realiza o cadastro (sem necessidade de preencher o código de acesso)
+            cy.get('input[name="first_name"]').type('Convidado');
+            cy.get('input[name="last_name"]').type('Silva');
+            cy.get('input[name="phone"]').type('11999999999');
+            cy.get('input[name="birth_date"]').type('1990-01-01');
+            cy.get('input[name="password"]').type('P@ssw0rd99!');
+            cy.get('input[name="password_confirm"]').type('P@ssw0rd99!');
+            cy.get('input[id="terms_accepted"]').check();
+
+            cy.get('button[type="submit"]').click();
+
+            // Deve redirecionar para a tela de login
+            cy.url().should('include', '/login');
+            cy.url().should('include', 'registered=true');
+          });
+        });
+      });
+    });
+  });
 });
+
