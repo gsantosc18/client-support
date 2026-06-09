@@ -13,11 +13,19 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  let token = null;
   if (store) {
     const state = store.getState();
-    if (state?.auth?.accessToken) {
-      config.headers.Authorization = `Bearer ${state.auth.accessToken}`;
-    }
+    token = state?.auth?.accessToken;
+  }
+
+  // Fallback para ler diretamente do storage caso o Redux não esteja inicializado ou esteja vazio
+  if (!token && typeof window !== 'undefined') {
+    token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+  }
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
