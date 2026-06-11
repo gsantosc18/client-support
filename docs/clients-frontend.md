@@ -84,6 +84,11 @@ Modal elegante e segura de confirmação e execução de exclusão.
 Tabela dinâmica de exibição de clientes.
 * **Responsabilidade**: Renderizar a lista de clientes, tratar cabeçalhos clicáveis para ordenação alfabética ou cronológica, exibir badges com cores harmônicas e gerenciar botões de ações.
 
+### 3.4. `ClientDetailModal.tsx`
+Modal elegante para visualização rápida das informações do cliente.
+* **Responsabilidade**: Exibir de forma contextualizada na mesma tela (sem redirecionamentos) os dados completos do cliente selecionado (E-mail, Telefone, Data de Nascimento, CPF, RG, CNH). Contém botões de cópia rápida (clipboard copy) com feedback visual de confirmação instantânea ("Copiado!") ao lado dos campos de E-mail, Data de Nascimento, CPF, RG e CNH.
+
+
 ---
 
 ## 4. Hooks e Camada de Serviços

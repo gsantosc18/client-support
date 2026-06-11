@@ -10,6 +10,7 @@ import { ProcessAnnotations } from '../components/ProcessAnnotations';
 import { ProcessDocuments } from '../components/ProcessDocuments';
 import { Button } from '@/components/forms/Button';
 import { ClientVaultSection } from '@/features/clients/components/ClientVaultSection';
+import { ClientDetailModal } from '@/features/clients/components/ClientDetailModal';
 
 export const ProcessDetailPage: React.FC = () => {
   const router = useRouter();
@@ -21,6 +22,7 @@ export const ProcessDetailPage: React.FC = () => {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'annotations' | 'documents'>('annotations');
   const [vaultClient, setVaultClient] = useState<{ id: string; name: string } | null>(null);
+  const [detailClientId, setDetailClientId] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -197,7 +199,7 @@ export const ProcessDetailPage: React.FC = () => {
                         </div>
                         <div className="flex flex-col gap-2">
                           <button
-                            onClick={() => router.push(`/clients/${c.id}`)}
+                            onClick={() => setDetailClientId(c.id || '')}
                             className="w-full text-center px-3 py-2 bg-background-primary border border-border-default text-text-secondary text-xs font-bold rounded-lg hover:bg-action-primary/10 hover:text-action-primary hover:border-action-primary/20 transition-all shadow-sm"
                           >
                             Ver Perfil do Cliente
@@ -409,6 +411,13 @@ export const ProcessDetailPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+      {detailClientId && (
+        <ClientDetailModal
+          clientId={detailClientId}
+          isOpen={!!detailClientId}
+          onClose={() => setDetailClientId(null)}
+        />
       )}
     </div>
   );
