@@ -9,6 +9,7 @@ import { ProcessDeleteModal } from '../components/ProcessDeleteModal';
 import { ProcessAnnotations } from '../components/ProcessAnnotations';
 import { ProcessDocuments } from '../components/ProcessDocuments';
 import { Button } from '@/components/forms/Button';
+import { ClientVaultSection } from '@/features/clients/components/ClientVaultSection';
 
 export const ProcessDetailPage: React.FC = () => {
   const router = useRouter();
@@ -19,6 +20,7 @@ export const ProcessDetailPage: React.FC = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'annotations' | 'documents'>('annotations');
+  const [vaultClient, setVaultClient] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -193,12 +195,21 @@ export const ProcessDetailPage: React.FC = () => {
                             </p>
                           )}
                         </div>
-                        <div>
+                        <div className="flex flex-col gap-2">
                           <button
                             onClick={() => router.push(`/clients/${c.id}`)}
                             className="w-full text-center px-3 py-2 bg-background-primary border border-border-default text-text-secondary text-xs font-bold rounded-lg hover:bg-action-primary/10 hover:text-action-primary hover:border-action-primary/20 transition-all shadow-sm"
                           >
                             Ver Perfil do Cliente
+                          </button>
+                          <button
+                            onClick={() => setVaultClient({ id: c.id || '', name: c.full_name })}
+                            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-action-primary/10 border border-action-primary/20 text-action-primary text-xs font-bold rounded-lg hover:bg-action-primary/20 transition-all shadow-sm"
+                          >
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            Cofre de Segredos
                           </button>
                         </div>
                       </div>
@@ -363,6 +374,42 @@ export const ProcessDetailPage: React.FC = () => {
         isLoading={deleteLoading}
         errorMessage={deleteError}
       />
+
+      {vaultClient && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-background-surface border border-border-default w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-scale-in">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-border-default flex items-center justify-between bg-background-muted/40">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 rounded-xl bg-action-primary/10 text-action-primary flex items-center justify-center">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-text-primary text-base">Cofre de Segredos</h3>
+                  <p className="text-xs text-text-muted font-semibold">{vaultClient.name}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setVaultClient(null)}
+                className="text-text-muted hover:text-text-primary hover:bg-background-muted p-1.5 rounded-lg transition-all"
+                title="Fechar"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-6 bg-background-primary">
+              <div className="-mt-8"> {/* Negative margin to counteract the top margin of ClientVaultSection */}
+                <ClientVaultSection clientId={vaultClient.id} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

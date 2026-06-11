@@ -106,3 +106,51 @@ Abstração da comunicação REST usando o cliente Axios pré-configurado.
   * `POST /clients` (Criação de cliente)
   * `PUT /clients/:id` (Atualização)
   * `DELETE /clients/:id` (Exclusão física permanente com log JSONB)
+
+---
+
+## 5. Cofre de Credenciais Sigilosas (Client Vault)
+
+O cofre de credenciais sigilosas permite armazenar dados confidenciais (ex: senhas e notas) associados a cada cliente, com criptografia ponta a ponta (descriptografados apenas sob demanda).
+
+### 5.1. Componentes de UI
+
+#### 5.1.1. `ClientVaultSection.tsx`
+Seção integrada à tela de detalhes do cliente (`ClientDetailPage.tsx`).
+* **Responsabilidade**: Renderizar a lista de credenciais pertencentes ao cliente, com a senha e observações mascaradas por padrão.
+* **Funcionalidades**:
+  * Exibe uma listagem em tabela contendo o título do acesso, senha mascarada (`••••••••`) e observações ocultadas.
+  * Botão **Revelar** (Ícone de Olho): Faz uma requisição assíncrona ao backend para descriptografar os dados daquele item específico e os exibe em tela.
+  * Botão **Copiar** (Ícone de Prancheta): Permite copiar a senha descriptografada para a área de transferência do sistema operacional (disponível apenas após revelar).
+  * Botão **Nova Credencial**: Abre o modal de cadastro de credencial.
+  * Botão **Editar** (Ícone de Lápis): Busca os dados descriptografados e abre o modal de edição correspondente.
+  * Botão **Excluir** (Ícone de Lixeira): Confirma a exclusão definitiva do item do cofre.
+
+#### 5.1.2. `VaultItemModal.tsx`
+Modal reutilizável para criação e edição de credenciais.
+* **Responsabilidade**: Coletar os dados da credencial de forma sanitizada.
+* **Campos**:
+  * **Título** (`title`): Identificador do acesso (ex: "Portal e-CAC").
+  * **Senha** (`password`): Senha ou chave de acesso.
+  * **Observações** (`notes`): Detalhes ou notas de suporte adicionais (opcional).
+* **Observação técnica**: O campo `user_id` não é exibido nem enviado pelo formulário; o backend infere o ID do usuário operador logado diretamente do token JWT. O campo `username` foi completamente removido dos fluxos da interface e do payload.
+
+### 5.2. Hook `useClientVault.ts`
+Hook customizado React encapsulando a lógica e os estados do cofre de credenciais.
+* **Estados Gerenciados**: `loading`, `error`, `items`.
+* **Funções Expostas**:
+  * `fetchItems(clientId)`: Busca a listagem de itens do cofre (mascarados).
+  * `revealItem(clientId, itemId)`: Busca um item específico em formato descriptografado.
+  * `createItem(clientId, data)`: Envia requisição para salvar um novo item de credencial.
+  * `updateItem(clientId, itemId, data)`: Envia requisição para atualizar os dados de uma credencial existente.
+  * `deleteItem(clientId, itemId)`: Envia requisição de exclusão física permanente da credencial.
+
+### 5.3. API Service `vault.service.ts`
+Comunicação direta com a API REST do cofre de clientes.
+* **Endpoints Mapeados**:
+  * `GET /clients/:clientId/vault` (Listagem de credenciais mascaradas)
+  * `GET /clients/:clientId/vault/:id` (Revelar credencial descriptografada)
+  * `POST /clients/:clientId/vault` (Adicionar credencial criptografada)
+  * `PUT /clients/:clientId/vault/:id` (Atualizar dados criptografados da credencial)
+  * `DELETE /clients/:clientId/vault/:id` (Remover credencial permanentemente)
+

@@ -50,7 +50,8 @@ Exibe a lista de processos cadastrados com suporte a paginação e busca por fil
 Apresenta todas as informações do processo incluindo relacionamento M:N com múltiplos clientes de forma harmoniosa e profissional.
 * **Componente Base**: `ProcessDetailPage.tsx`
 * **Funcionalidades**:
-  * **Clientes Associados em Grade Responsiva**: Apresentação da lista completa de clientes em um layout de grade moderno (`grid grid-cols-1 sm:grid-cols-2 gap-4`), exibindo apenas o nome completo do cliente, a Cidade/Estado do estabelecimento associado e um botão com link para o perfil.
+  * **Clientes Associados em Grade Responsiva**: Apresentação da lista completa de clientes em um layout de grade moderno (`grid grid-cols-1 sm:grid-cols-2 gap-4`), exibindo apenas o nome completo do cliente, a Cidade/Estado do estabelecimento associado, um botão com link para o perfil, e o botão do **Cofre de Segredos**.
+  * **Cofre de Segredos**: Cada cliente associado possui um botão para acessar o cofre de credenciais diretamente. Ao clicar, abre-se um modal contendo a seção do cofre (`ClientVaultSection`), permitindo visualizar, criar, decriptografar, atualizar ou deletar senhas e segredos associados ao cliente em tempo de execução sem sair da tela do processo.
   * **Ordenação Alfabética**: Clientes associados são ordenados em ordem alfabética de A a Z de forma imutável via `localeCompare`.
   * **Ações do Processo Integradas**: Seção dedicada à direita ("Ações do Processo") contendo botões estilizados para editar e excluir. Os botões utilizam SVGs idênticos aos usados na listagem de clientes/processos para manter a coerência visual.
   * **Exclusão Segura**: O botão de excluir aciona o modal de confirmação no qual o usuário deve digitar `"delete"` para efetivar a remoção física e redirecionamento automático de volta para `/processes`.

@@ -88,6 +88,7 @@ func main() {
 	estRepo := postgres.NewEstablishmentRepository(db)
 	annoRepo := postgres.NewAnnotationRepository(db)
 	docRepo := postgres.NewDocumentRepository(db)
+	vaultRepo := postgres.NewClientVaultRepository(db)
 
 	// Parse companyID and invitationDuration
 	parsedCompanyID, err := uuid.Parse(cfg.CompanyID)
@@ -110,6 +111,12 @@ func main() {
 	annoService := service.NewAnnotationService(annoRepo, processRepo)
 	docService := service.NewDocumentService(docRepo, fileStorage, processRepo)
 
+	vaultKey := os.Getenv("VAULT_KEY")
+	if vaultKey == "" {
+		vaultKey = cfg.JWT.Secret
+	}
+	vaultService := service.NewClientVaultService(vaultRepo, clientRepo, vaultKey)
+
 	// Handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	clientHandler := handlers.NewClientHandler(clientService)
@@ -119,6 +126,7 @@ func main() {
 	companyHandler := handlers.NewCompanyHandler(companyService)
 	annoHandler := handlers.NewAnnotationHandler(annoService)
 	docHandler := handlers.NewDocumentHandler(docService)
+	vaultHandler := handlers.NewClientVaultHandler(vaultService)
 
 	// Fiber App
 	app := fiber.New(fiber.Config{
@@ -187,6 +195,13 @@ func main() {
 	clients.Get("/:id", clientHandler.GetByID)
 	clients.Put("/:id", clientHandler.Update)
 	clients.Delete("/:id", clientHandler.Delete)
+
+	// Rotas do cofre de credenciais de clientes
+	clients.Post("/:id/vault", vaultHandler.Create)
+	clients.Get("/:id/vault", vaultHandler.List)
+	clients.Get("/:id/vault/:item_id", vaultHandler.GetByID)
+	clients.Put("/:id/vault/:item_id", vaultHandler.Update)
+	clients.Delete("/:id/vault/:item_id", vaultHandler.Delete)
 
 	// Rotas de Estabelecimentos
 	establishments := api.Group("/establishments", middleware.Protected(blacklistRepo))

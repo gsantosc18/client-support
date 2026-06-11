@@ -48,6 +48,27 @@ Tabela que armazena os clientes atendidos pelas empresas.
 
 ---
 
+### 1.1.1. Tabela: `client_vault_items`
+Tabela que armazena informações sigilosas e senhas encriptadas de clientes.
+* **id**: `CHAR(36)` (Chave Primária, gerada via `(UUID())`)
+* **client_id**: `CHAR(36)` (Chave Estrangeira apontando para `clients(id)`, `ON DELETE CASCADE`)
+* **company_id**: `CHAR(36)` (Chave Estrangeira apontando para `companies(id)`, `ON DELETE CASCADE`)
+* **user_id**: `CHAR(36)` (Chave Estrangeira apontando para `users(id)`, `ON DELETE RESTRICT`, preenchido automaticamente)
+* **title**: `VARCHAR(255)` (Título identificador do acesso, ex: "Portal e-CAC", texto claro, Obrigatório)
+* **password**: `TEXT` (Senha encriptada via AES-256-GCM, Obrigatório)
+* **notes**: `TEXT` (Observações encriptadas via AES-256-GCM, Opcional)
+* **created_at**: `TIMESTAMP` (Data de criação UTC)
+* **updated_at**: `TIMESTAMP` (Data de atualização UTC)
+
+**Índices e Constraints**:
+* Chaves estrangeiras com exclusão física em cascata para `clients` e `companies`.
+* Chave estrangeira de integridade `fk_vault_user` para `users`.
+* `idx_vault_client`: Otimiza consultas por cliente.
+* `idx_vault_company`: Otimiza consultas por tenant.
+* `idx_vault_user`: Otimiza consultas por operador.
+
+---
+
 ### 1.2. Tabela: `establishments`
 Tabela que gerencia os estabelecimentos vinculados às empresas de apoio ao cliente (ex: CRAS, CREAS).
 * **id**: `CHAR(36)` (Chave Primária, gerada via `(UUID())`)
@@ -146,6 +167,14 @@ O `company_id` do registro é inferido automaticamente do token de acesso do usu
 * **`GET /api/clients`**: Listar clientes da empresa com suporte a paginação e busca textual.
 * **`PUT /api/clients/:id`**: Atualizar dados de um cliente.
 * **`DELETE /api/clients/:id`**: Exclusão física atômica gravando dados históricos na tabela fria. Bloqueado caso haja processos associados na tabela `client_processes`.
+
+#### Cofre de Credenciais (Client Vault)
+Os endpoints a seguir operam sob criptografia **AES-256-GCM** na camada de aplicação do backend e validam rigorosamente a posse (`company_id`) dos registros:
+* **`POST /api/clients/:id/vault`**: Adiciona e encripta uma nova credencial sigilosa. O `user_id` é preenchido de forma automática a partir do JWT.
+* **`GET /api/clients/:id/vault`**: Retorna a lista de itens do cofre (apenas títulos, IDs, etc., enquanto `password` e `notes` são ocultados).
+* **`GET /api/clients/:id/vault/:item_id`**: Retorna o item completo descriptografando a senha e observações sob demanda direta.
+* **`PUT /api/clients/:id/vault/:item_id`**: Atualiza e criptografa os novos dados da credencial.
+* **`DELETE /api/clients/:id/vault/:item_id`**: Exclui definitivamente a credencial.
 
 ---
 

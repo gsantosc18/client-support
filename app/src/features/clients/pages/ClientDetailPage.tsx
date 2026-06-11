@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useClients } from '../hooks/useClients';
 import { ClientDeleteModal } from '../components/ClientDeleteModal';
 import { Button } from '@/components/forms/Button';
+import { ClientVaultSection } from '../components/ClientVaultSection';
 
 interface ClientDetailPageProps {
   id: string;
@@ -280,6 +281,9 @@ export const ClientDetailPage: React.FC<ClientDetailPageProps> = ({ id }) => {
             </dl>
           </div>
         </div>
+
+        {/* Cofre de credenciais */}
+        <ClientVaultSection clientId={client.id || ''} />
       </div>
 
       {/* Modal de Exclusão */}
