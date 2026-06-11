@@ -80,6 +80,12 @@ jobs:
     needs: [build-backend, build-frontend]
     environment: dev
     steps:
+      - name: Debug secrets
+        run: |
+          echo "SSH_HOST length: ${#SSH_HOST}"
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+
       - name: Deploy to Docker Swarm via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
