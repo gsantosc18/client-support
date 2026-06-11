@@ -83,8 +83,11 @@ jobs:
       - name: Debug secrets
         run: |
           echo "SSH_HOST length: ${#SSH_HOST}"
+          echo "SSH_KEY length: ${#SSH_KEY}"
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          
 
       - name: Deploy to Docker Swarm via SSH
         uses: appleboy/ssh-action@v1.0.0
