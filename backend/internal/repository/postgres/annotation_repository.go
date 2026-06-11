@@ -15,12 +15,15 @@ func NewAnnotationRepository(db *gorm.DB) *AnnotationRepository {
 }
 
 func (r *AnnotationRepository) Create(annotation *domain.Annotation) error {
-	return r.db.Create(annotation).Error
+	if err := r.db.Create(annotation).Error; err != nil {
+		return err
+	}
+	return r.db.Preload("User").First(annotation, "id = ?", annotation.ID).Error
 }
 
 func (r *AnnotationRepository) FindByID(id uuid.UUID) (*domain.Annotation, error) {
 	var annotation domain.Annotation
-	err := r.db.Where("id = ?", id).First(&annotation).Error
+	err := r.db.Preload("User").Where("id = ?", id).First(&annotation).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, domain.ErrAnnotationNotFound
@@ -32,7 +35,7 @@ func (r *AnnotationRepository) FindByID(id uuid.UUID) (*domain.Annotation, error
 
 func (r *AnnotationRepository) FindAllByProcess(processID uuid.UUID, companyID uuid.UUID) ([]*domain.Annotation, error) {
 	var annotations []*domain.Annotation
-	err := r.db.Where("process_id = ? AND company_id = ?", processID, companyID).
+	err := r.db.Preload("User").Where("process_id = ? AND company_id = ?", processID, companyID).
 		Order("created_at DESC").
 		Find(&annotations).Error
 	if err != nil {
@@ -42,7 +45,10 @@ func (r *AnnotationRepository) FindAllByProcess(processID uuid.UUID, companyID u
 }
 
 func (r *AnnotationRepository) Update(annotation *domain.Annotation) error {
-	return r.db.Save(annotation).Error
+	if err := r.db.Save(annotation).Error; err != nil {
+		return err
+	}
+	return r.db.Preload("User").First(annotation, "id = ?", annotation.ID).Error
 }
 
 func (r *AnnotationRepository) Delete(id uuid.UUID) error {

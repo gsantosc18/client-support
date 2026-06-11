@@ -26,6 +26,7 @@ type Annotation struct {
 	ProcessID  uuid.UUID            `json:"process_id" gorm:"type:char(36);not null"`
 	CompanyID  uuid.UUID            `json:"company_id" gorm:"type:char(36);not null"`
 	UserID     uuid.UUID            `json:"user_id" gorm:"type:char(36);not null"`
+	User       *User                `json:"user,omitempty" gorm:"foreignKey:UserID"`
 	Annotation string               `json:"annotation" gorm:"type:text;not null"`
 	Visibility AnnotationVisibility `json:"visibility" gorm:"type:varchar(10);not null;default:'PUBLIC'"`
 	CreatedAt  time.Time            `json:"created_at"`
