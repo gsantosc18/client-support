@@ -28,24 +28,36 @@ O pipeline é composto por dois jobs paralelos para reduzir o tempo total de exe
   * `registry.advocase.site/client-support/backend:latest`
 
 ### 3.2. Build & Push Frontend (`build-frontend`)
-* **Propósito**: Compilar o frontend em Next.js no modo standalone, injetar a variável de ambiente `NEXT_PUBLIC_API_URL` e enviar a imagem final.
-* **Variáveis Injetadas**:
-  * `NEXT_PUBLIC_API_URL`: Valor configurado no secret `NEXT_PUBLIC_API_URL` (valor padrão fallback: `https://api.advocase.site/api`).
+* **Propósito**: Compilar o frontend em Next.js no modo standalone, injetar as variáveis de ambiente necessárias e enviar a imagem final.
 * **Tags Geradas**:
   * `registry.advocase.site/client-support/app:<tag_da_release>` (ex: `v1.2.0`)
   * `registry.advocase.site/client-support/app:latest`
 
+### 3.3. Deploy to Swarm (`deploy`)
+* **Propósito**: Acessar o servidor de produção/homologação via SSH de forma automática e realizar o deploy do stack atualizado do Swarm.
+* **Dependência**: Depende da conclusão bem-sucedida de `build-backend` e `build-frontend`.
+* **Comando Executado**:
+  ```bash
+  cd /root/workdir
+  docker stack deploy --with-registry-auth -c client-suport.yaml client-support
+  ```
+
 ---
 
-## 4. Requisitos de Configuração (Secrets)
+## 4. Requisitos de Configuração (Secrets e Variáveis)
 
 Para o funcionamento correto do pipeline, os seguintes segredos devem ser configurados no repositório do GitHub (em **Settings -> Secrets and variables -> Actions**):
 
-| Secret | Descrição | Obrigatório? |
-|---|---|---|
-| `REGISTRY_USERNAME` | Usuário do registry privado `registry.advocase.site` | Sim |
-| `REGISTRY_PASSWORD` | Senha ou Token de escrita no registry privado | Sim |
-| `NEXT_PUBLIC_API_URL` | URL de produção da API utilizada pelo frontend | Não (Fallback: `https://api.advocase.site/api`) |
+| Nome | Tipo | Descrição | Obrigatório? |
+|---|---|---|---|
+| `REGISTRY_USERNAME` | Secret | Usuário do registry privado `registry.advocase.site` | Sim |
+| `REGISTRY_PASSWORD` | Secret | Senha ou Token de escrita no registry privado | Sim |
+| `SSH_HOST` | Secret | IP ou domínio do servidor de deploy (Swarm Manager) | Sim |
+| `SSH_USERNAME` | Secret | Usuário do servidor SSH (ex: `root`) | Sim |
+| `SSH_KEY` | Secret | Chave privada SSH para autenticação sem senha | Sim |
+| `SSH_PORT` | Secret / Var | Porta do SSH (padrão: 22 se não fornecido) | Não |
+| `BACKEND_URL` | Variable | URL da API para compilação do frontend | Não |
+| `NEXT_PUBLIC_COMPANY_ID` | Variable | ID público da empresa padrão | Não |
 
 ---
 
