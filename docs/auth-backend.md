@@ -26,6 +26,9 @@ Para atender aos requisitos técnicos, as configurações do serviço são centr
   * `DATABASE_URL` -> `database.url` (DSN do MariaDB/MySQL)
   * `REDIS_URL` -> `redis.url` (Endereço do Redis)
   * `JWT_SECRET` -> `jwt.secret` (Segredo de assinatura dos tokens)
+  * `JWT_ACCESS_TOKEN_EXPIRATION` -> `jwt.access_expiration` (Tempo de expiração do access token, padrão: 30m)
+  * `JWT_REFRESH_TOKEN_EXPIRATION` -> `jwt.refresh_expiration` (Tempo de expiração do refresh token padrão, padrão: 30m)
+  * `JWT_REFRESH_TOKEN_EXTENDED_EXPIRATION` -> `jwt.refresh_extended_expiration` (Tempo do refresh token com "Manter-me logado", padrão: 168h / 7 dias)
 
 ---
 
@@ -46,11 +49,9 @@ Para combater ataques de força bruta, a política de login impõe o bloqueio te
 - Bloqueio temporário por **30 minutos** (`LockedUntil`).
 - Retorno de status `401 Unauthorized` com mensagem clara de bloqueio nas requisições subsequentes.
 
-### 3. Invalidação de Sessão (Logout Blacklist)
-O endpoint de `Logout` realiza a invalidação segura de sessões ativas:
-- O token JWT recebido no header `Authorization: Bearer <token>` é inserido no Redis.
-- Permanece na blacklist do Redis com o tempo de expiração igual ao tempo de expiração remanescente do próprio token (TTL dinâmico).
-- O middleware de JWT (`Protected`) valida a blacklist em todas as chamadas rotas autenticadas.
+### 3. Invalidação de Sessão e Rotação de Tokens (Blacklist Redis)
+- **Logout:** O token JWT de acesso é inserido na Blacklist do Redis com TTL igual ao tempo remanescente.
+- **Refresh Token Rotation:** Ao solicitar renovação de sessão via `POST /api/auth/refresh`, o refresh token antigo é imediatamente adicionado à Blacklist do Redis e um novo par de tokens (`access_token` e `refresh_token`) é emitido. Tentativas de reutilização de um refresh token já consumido são rejeitadas com `401 Unauthorized`.
 
 ---
 
@@ -68,6 +69,19 @@ Realiza o cadastro do usuário.
 Autentica o usuário no sistema.
 - **Body**: `email`, `password`, `company_id`, `keep_me_logged_in` (boolean).
 - **Regras**: Retorna `access_token` (30min) e `refresh_token` (30min ou 7 dias). Bloqueia após 3 falhas.
+
+### `POST /api/auth/refresh`
+Renova a sessão do usuário de forma transparente emitindo um novo par de tokens.
+- **Body**:
+  ```json
+  {
+    "refresh_token": "string (JWT refresh token obrigatório)"
+  }
+  ```
+- **Respostas**:
+  - `200 OK`: Retorna novo par `{ "access_token", "refresh_token" }`.
+  - `400 Bad Request`: Token não informado ou corpo mal formatado.
+  - `401 Unauthorized`: Token inválido, expirado, revogado na blacklist ou usuário/companhia inativos.
 
 ### `POST /api/auth/forgot-password`
 Solicita link de recuperação.

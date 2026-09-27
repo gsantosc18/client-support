@@ -374,3 +374,89 @@ func TestAuthService_Logout(t *testing.T) {
 		assert.NoError(t, err)
 	})
 }
+
+func TestAuthService_RefreshToken(t *testing.T) {
+	userID := uuid.New()
+	companyID := uuid.New()
+
+	t.Run("Token Vazio", func(t *testing.T) {
+		svc := NewAuthService(nil, nil, nil, nil, uuid.Nil, "", 24*time.Hour)
+		tokens, err := svc.RefreshToken(context.Background(), "")
+		assert.Nil(t, tokens)
+		assert.EqualError(t, err, "refresh_token obrigatório")
+	})
+
+	t.Run("Token Invalido", func(t *testing.T) {
+		svc := NewAuthService(nil, nil, nil, nil, uuid.Nil, "", 24*time.Hour)
+		tokens, err := svc.RefreshToken(context.Background(), "token.invalido.aqui")
+		assert.Nil(t, tokens)
+		assert.EqualError(t, err, "token inválido ou expirado")
+	})
+
+	t.Run("Token de Acesso em vez de Refresh", func(t *testing.T) {
+		pair, _ := utils.GenerateTokenPair(userID, companyID, false)
+		svc := NewAuthService(nil, nil, nil, nil, uuid.Nil, "", 24*time.Hour)
+		tokens, err := svc.RefreshToken(context.Background(), pair.AccessToken)
+		assert.Nil(t, tokens)
+		assert.EqualError(t, err, "token informado não é um refresh token")
+	})
+
+	t.Run("Token na Blacklist", func(t *testing.T) {
+		pair, _ := utils.GenerateTokenPair(userID, companyID, false)
+		mockBlacklist := new(MockBlacklistRepo)
+		mockBlacklist.On("IsBlacklisted", mock.Anything, pair.RefreshToken).Return(true, nil)
+
+		svc := NewAuthService(nil, nil, nil, mockBlacklist, uuid.Nil, "", 24*time.Hour)
+		tokens, err := svc.RefreshToken(context.Background(), pair.RefreshToken)
+		assert.Nil(t, tokens)
+		assert.EqualError(t, err, "token inválido, expirado ou revogado")
+	})
+
+	t.Run("Usuario Nao Encontrado", func(t *testing.T) {
+		pair, _ := utils.GenerateTokenPair(userID, companyID, false)
+		mockBlacklist := new(MockBlacklistRepo)
+		mockBlacklist.On("IsBlacklisted", mock.Anything, pair.RefreshToken).Return(false, nil)
+
+		mockUser := new(MockUserRepository)
+		mockUser.On("FindByID", userID).Return(nil, errors.New("not found"))
+
+		svc := NewAuthService(mockUser, nil, nil, mockBlacklist, uuid.Nil, "", 24*time.Hour)
+		tokens, err := svc.RefreshToken(context.Background(), pair.RefreshToken)
+		assert.Nil(t, tokens)
+		assert.EqualError(t, err, "usuário não encontrado")
+	})
+
+	t.Run("Sucesso na Renovacao", func(t *testing.T) {
+		pair, _ := utils.GenerateTokenPair(userID, companyID, true)
+		mockBlacklist := new(MockBlacklistRepo)
+		mockBlacklist.On("IsBlacklisted", mock.Anything, pair.RefreshToken).Return(false, nil)
+		mockBlacklist.On("Add", mock.Anything, pair.RefreshToken, mock.Anything).Return(nil)
+
+		mockUser := new(MockUserRepository)
+		mockUser.On("FindByID", userID).Return(&domain.User{
+			ID:        userID,
+			CompanyID: companyID,
+			Status:    domain.UserStatusActive,
+		}, nil)
+
+		mockCompany := new(MockCompanyRepository)
+		mockCompany.On("FindByID", companyID).Return(&domain.Company{
+			ID:     companyID,
+			Status: domain.CompanyStatusActive,
+		}, nil)
+
+		svc := NewAuthService(mockUser, mockCompany, nil, mockBlacklist, uuid.Nil, "", 24*time.Hour)
+		newTokens, err := svc.RefreshToken(context.Background(), pair.RefreshToken)
+		assert.NoError(t, err)
+		assert.NotNil(t, newTokens)
+		assert.NotEmpty(t, newTokens.AccessToken)
+		assert.NotEmpty(t, newTokens.RefreshToken)
+		assert.NotEqual(t, pair.AccessToken, newTokens.AccessToken)
+		assert.NotEqual(t, pair.RefreshToken, newTokens.RefreshToken)
+
+		// Verifica se o novo refresh token preservou KeepMeLoggedIn
+		refreshClaims, err := utils.ValidateToken(newTokens.RefreshToken)
+		assert.NoError(t, err)
+		assert.True(t, refreshClaims.KeepMeLoggedIn)
+	})
+}

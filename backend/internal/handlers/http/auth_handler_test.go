@@ -147,6 +147,7 @@ func setupTestApp() (*fiber.App, *MockUserRepository, *MockCompanyRepository, *M
 
 	app.Post("/api/auth/register", handler.Register)
 	app.Post("/api/auth/login", handler.Login)
+	app.Post("/api/auth/refresh", handler.RefreshToken)
 	app.Post("/api/auth/recover", handler.RecoverPassword)
 	app.Post("/api/auth/reset", handler.ResetPassword)
 	app.Post("/api/auth/logout", handler.Logout)
@@ -462,6 +463,74 @@ func TestAuthHandler(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, fiber.StatusInternalServerError, resp.StatusCode)
 
+		mockBlacklistRepo.AssertExpectations(t)
+	})
+
+	t.Run("RefreshToken - Missing Body", func(t *testing.T) {
+		app, _, _, _, _ := setupTestApp()
+		req := httptest.NewRequest("POST", "/api/auth/refresh", nil)
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("RefreshToken - Empty Token", func(t *testing.T) {
+		app, _, _, _, _ := setupTestApp()
+		body := map[string]string{"refresh_token": ""}
+		jsonBody, _ := json.Marshal(body)
+		req := httptest.NewRequest("POST", "/api/auth/refresh", bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+	})
+
+	t.Run("RefreshToken - Invalid Token", func(t *testing.T) {
+		app, _, _, _, _ := setupTestApp()
+		body := map[string]string{"refresh_token": "invalid.jwt.token"}
+		jsonBody, _ := json.Marshal(body)
+		req := httptest.NewRequest("POST", "/api/auth/refresh", bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+	})
+
+	t.Run("RefreshToken - Success", func(t *testing.T) {
+		app, mockUserRepo, mockCompanyRepo, mockBlacklistRepo, _ := setupTestApp()
+		userID := uuid.New()
+		pair, err := utils.GenerateTokenPair(userID, companyID, true)
+		assert.NoError(t, err)
+
+		mockBlacklistRepo.On("IsBlacklisted", mock.Anything, pair.RefreshToken).Return(false, nil).Once()
+		mockBlacklistRepo.On("Add", mock.Anything, pair.RefreshToken, mock.Anything).Return(nil).Once()
+
+		mockUserRepo.On("FindByID", userID).Return(&domain.User{
+			ID:        userID,
+			CompanyID: companyID,
+			Status:    domain.UserStatusActive,
+		}, nil).Once()
+
+		mockCompanyRepo.On("FindByID", companyID).Return(company, nil).Once()
+
+		body := map[string]string{"refresh_token": pair.RefreshToken}
+		jsonBody, _ := json.Marshal(body)
+		req := httptest.NewRequest("POST", "/api/auth/refresh", bytes.NewBuffer(jsonBody))
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := app.Test(req)
+		assert.NoError(t, err)
+		assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+
+		var newTokens map[string]string
+		json.NewDecoder(resp.Body).Decode(&newTokens)
+		assert.NotEmpty(t, newTokens["access_token"])
+		assert.NotEmpty(t, newTokens["refresh_token"])
+		assert.NotEqual(t, pair.AccessToken, newTokens["access_token"])
+		assert.NotEqual(t, pair.RefreshToken, newTokens["refresh_token"])
+
+		mockUserRepo.AssertExpectations(t)
+		mockCompanyRepo.AssertExpectations(t)
 		mockBlacklistRepo.AssertExpectations(t)
 	})
 }

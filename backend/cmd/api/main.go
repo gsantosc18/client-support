@@ -37,8 +37,23 @@ func main() {
 		log.Fatal("Falha ao carregar configurações:", err)
 	}
 
-	// Set dynamic JWT signing key
-	utils.SetJWTSecret(cfg.JWT.Secret)
+	// Set dynamic JWT signing key and token durations
+	if cfg.JWT.Secret != "" {
+		utils.SetJWTSecret(cfg.JWT.Secret)
+	}
+	accessDur, err := time.ParseDuration(cfg.JWT.AccessExpiration)
+	if err != nil {
+		accessDur = 30 * time.Minute
+	}
+	refreshDur, err := time.ParseDuration(cfg.JWT.RefreshExpiration)
+	if err != nil {
+		refreshDur = 30 * time.Minute
+	}
+	extendedRefreshDur, err := time.ParseDuration(cfg.JWT.RefreshExtendedExpiration)
+	if err != nil {
+		extendedRefreshDur = 7 * 24 * time.Hour
+	}
+	utils.SetTokenDurations(accessDur, refreshDur, extendedRefreshDur)
 
 	// Database Connection
 	db, err := gorm.Open(gormmysql.Open(cfg.Database.URL), &gorm.Config{})
@@ -180,6 +195,7 @@ func main() {
 
 	auth.Post("/register", authHandler.Register)
 	auth.Post("/login", authHandler.Login)
+	auth.Post("/refresh", authHandler.RefreshToken)
 	auth.Post("/forgot-password", authHandler.RecoverPassword)
 	auth.Post("/reset-password", authHandler.ResetPassword)
 	auth.Get("/validate-invitation", authHandler.ValidateInvitation)

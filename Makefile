@@ -13,7 +13,7 @@ clean:
 	docker-compose down -v
 
 tests-back:
-	@cd backend && go test ./cmd/api/... -v
+	@cd backend && go test ./... -v
 
 tests-front:
 	@cd app && npm run test

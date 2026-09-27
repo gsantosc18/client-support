@@ -50,6 +50,25 @@ func TestJWTTokenFlow(t *testing.T) {
 		// Check that the expiration is roughly 7 days
 		expiresIn := time.Until(refreshClaims.ExpiresAt.Time)
 		assert.True(t, expiresIn > 6*24*time.Hour && expiresIn <= 7*24*time.Hour)
+		assert.True(t, refreshClaims.KeepMeLoggedIn)
+	})
+
+	t.Run("Custom token durations", func(t *testing.T) {
+		SetTokenDurations(15*time.Minute, 45*time.Minute, 48*time.Hour)
+		defer SetTokenDurations(30*time.Minute, 30*time.Minute, 7*24*time.Hour)
+
+		pair, err := GenerateTokenPair(userID, companyID, true)
+		assert.NoError(t, err)
+
+		accessClaims, err := ValidateToken(pair.AccessToken)
+		assert.NoError(t, err)
+		accessExp := time.Until(accessClaims.ExpiresAt.Time)
+		assert.True(t, accessExp > 14*time.Minute && accessExp <= 15*time.Minute)
+
+		refreshClaims, err := ValidateToken(pair.RefreshToken)
+		assert.NoError(t, err)
+		refreshExp := time.Until(refreshClaims.ExpiresAt.Time)
+		assert.True(t, refreshExp > 47*time.Hour && refreshExp <= 48*time.Hour)
 	})
 
 	t.Run("Invalid token validation", func(t *testing.T) {
