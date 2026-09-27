@@ -14,8 +14,8 @@ O módulo foi organizado utilizando o padrão Feature-Sliced Design:
 - `src/features/company/hooks/useCompany.ts`: Hook customizado que gerencia o carregamento sob demanda do nome da empresa e coordena o cache Redux + Web Storage.
 - `src/features/company/services/company.service.ts`: Abstração de chamadas para a rota de consulta aos dados da empresa `/api/company`.
 - `src/components/Header.tsx`: Componente global e centralizado de cabeçalho superior que substitui os blocos duplicados de navbar e exibe o logo reativo e nome da empresa.
-- `src/services/api.ts`: Instância customizada do Axios configurada com Interceptors. O interceptor de `request` anexa o `Access Token` nas requisições. O interceptor de `response` intercepta erros 401 e efetua o logout automático redirecionando o usuário.
-- `src/services/auth.service.ts`: Abstração de chamadas da API REST do backend para registrar, logar, solicitar link de recuperação e resetar senhas.
+- `src/services/api.ts`: Instância customizada do Axios configurada com Interceptors. O interceptor de `request` anexa o `Access Token` nas requisições. O interceptor de `response` intercepta erros 401: caso haja um `refreshToken` persistido, aciona a renovação silenciosa transparente com fila de concorrência (`isRefreshing` e `failedQueue`), renova as credenciais, reexecuta as requisições originais pendentes sem deslogar o usuário e, apenas em caso de falha irreversível de renovação, efetua o logout automático redirecionando para `/login`.
+- `src/services/auth.service.ts`: Abstração de chamadas da API REST do backend para registrar, logar, renovar tokens (`refreshToken`), solicitar link de recuperação e resetar senhas.
 - `src/state/authStore.ts`: Store global e slice do Redux utilizando `@reduxjs/toolkit` para armazenar tokens de acesso, status de login, e cache em memória de `companyName`.
 - `src/utils/navigation.ts`: Utilitário de redirecionamento programático seguro contra SSR (Server-Side Rendering).
 
@@ -32,7 +32,7 @@ export const navigateTo = (url: string): void => {
   }
 };
 ```
-Esta utilidade é empregada principalmente no interceptor de respostas do Axios (`api.ts`). Se o backend retornar status `401 Unauthorized`, o interceptor limpa o token de autenticação e redireciona de forma robusta e segura para o `/login`.
+Esta utilidade é empregada no interceptor de respostas do Axios (`api.ts`). Se o backend retornar status `401 Unauthorized` e a renovação de sessão (refresh) falhar, o interceptor limpa todos os tokens locais e redireciona de forma robusta e segura para o `/login`.
 
 ---
 
@@ -50,13 +50,18 @@ Todos os formulários que transitam dados e credenciais sensíveis (Login, Cadas
 
 ---
 
-## Fluxos de Navegação
+## Fluxos de Navegação e Renovação Silenciosa de Sessão
 
 1. **Acesso não logado:** O usuário inicia no `/login`. Pode navegar para `/register` ou `/forgot-password`.
 2. **Esqueci minha senha:** Em `/forgot-password`, após o envio do e-mail, se o usuário clicar no link recebido com o token, será redirecionado para `/reset-password?token=XXX`.
-3. **Pós-Login:** Após o login com sucesso, os tokens são recebidos. O `AccessToken` vai para o Redux State e é persistido de forma robusta no `localStorage` (se a opção "Manter-me logado" foi selecionada) ou no `sessionStorage` (comportamento padrão de aba). Isso previne a perda de sessão ao recarregar a página. O aplicativo então redireciona o usuário para `/clients`.
-4. **Pós-Cadastro:** Após sucesso em `/register`, o usuário é redirecionado de volta ao `/login?registered=true`, mostrando a tela de login.
-5. **Parâmetro de Inquilino/Empresa (company_id):** As páginas `/register`, `/login` e `/forgot-password` aceitam o parâmetro de query `company_id` na URL (ex: `/login?company_id=XXX`). Quando informado, as ações correspondentes de autenticação (cadastro, login e recuperação de senha) são processadas sob o contexto da empresa informada. Além disso, as transições e links entre essas três páginas de autenticação preservam automaticamente o `company_id` na query string. Se nenhum parâmetro for fornecido, assume-se o ID de testes padrão (`11111111-1111-1111-1111-111111111111`).
+3. **Pós-Login:** Após o login com sucesso, os tokens são recebidos. O `AccessToken` vai para o Redux State e é persistido no `localStorage` (se "Manter-me logado" foi selecionado) ou no `sessionStorage`. O `RefreshToken` correspondente é guardado no storage.
+4. **Renovação Silenciosa (Silent Refresh):** Quando o `AccessToken` expira (30 minutos), qualquer requisição protegida interceptada com HTTP 401 dispara o fluxo de renovação sem intervenção do usuário:
+   - Se já houver um refresh em andamento, as demais requisições concorrentes são enfileiradas na `failedQueue`.
+   - O interceptor chama `POST /api/auth/refresh` transmitindo o `refreshToken`.
+   - Recebendo o novo par de tokens, o Redux e o storage são atualizados, a fila é processada e a requisição original é repetida com sucesso.
+   - Caso o token esteja inválido ou expirado, o logout é disparado e o usuário é redirecionado ao `/login`.
+5. **Pós-Cadastro:** Após sucesso em `/register`, o usuário é redirecionado de volta ao `/login?registered=true`.
+6. **Parâmetro de Inquilino/Empresa (company_id):** Preservado entre fluxos e links para garantir o correto isolamento multi-tenant.
 
 ---
 
@@ -65,12 +70,12 @@ Todos os formulários que transitam dados e credenciais sensíveis (Login, Cadas
 Para evitar que o usuário seja desconectado e redirecionado para a página de login ao recarregar a página, implementamos um mecanismo híbrido de persistência e hidratação no Redux Store (`authStore.ts`):
 
 1. **Persistência Seletiva (Login)**:
-   - Se o usuário selecionar **"Manter-me logado"**, o `AccessToken` e o `companyName` são persistidos no `localStorage`.
-   - Se a opção estiver desmarcada, o `AccessToken` e o `companyName` são armazenados no `sessionStorage` (destruídos ao fechar a aba/navegador).
+   - Se o usuário selecionar **"Manter-me logado"**, o `AccessToken`, `RefreshToken` e o `companyName` são persistidos no `localStorage`.
+   - Se a opção estiver desmarcada, são armazenados no `sessionStorage` (destruídos ao fechar a aba/navegador).
 2. **Hidratação Inicial**:
    - Ao iniciar a aplicação (client-side), a store do Redux é hidratada automaticamente tentando ler o `AccessToken` e o `companyName` de ambas as storages.
 3. **Limpeza Consistente**:
-   - Ao realizar logout voluntário ou receber uma resposta `401 Unauthorized` de qualquer endpoint protegido do backend, os tokens e dados de empresa são limpos de forma consistente de ambas as storages (`localStorage` e `sessionStorage`).
+   - Ao realizar logout voluntário ou falhar definitivamente na renovação do refresh token, os dados são limpos de forma consistente de ambas as storages (`localStorage` e `sessionStorage`).
 
 ---
 

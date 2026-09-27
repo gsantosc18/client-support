@@ -281,3 +281,64 @@ func (s *AuthService) Logout(ctx context.Context, token string) error {
 	// Pega o token de acesso (validade de 30 minutos, vamos botar 30m na blacklist)
 	return s.blacklistRepo.Add(ctx, token, 30*time.Minute)
 }
+
+func (s *AuthService) RefreshToken(ctx context.Context, refreshTokenStr string) (*utils.TokenPair, error) {
+	if refreshTokenStr == "" {
+		return nil, errors.New("refresh_token obrigatório")
+	}
+
+	// 1. Validar assinatura e integridade do token
+	claims, err := utils.ValidateToken(refreshTokenStr)
+	if err != nil {
+		return nil, errors.New("token inválido ou expirado")
+	}
+
+	// 2. Garantir que o token é do tipo refresh
+	if claims.TokenType != "refresh" {
+		return nil, errors.New("token informado não é um refresh token")
+	}
+
+	// 3. Verificar se o token está na blacklist (já consumido ou revogado)
+	isBlacklisted, err := s.blacklistRepo.IsBlacklisted(ctx, refreshTokenStr)
+	if err != nil || isBlacklisted {
+		return nil, errors.New("token inválido, expirado ou revogado")
+	}
+
+	// 4. Validar se o usuário existe e não está bloqueado
+	user, err := s.userRepo.FindByID(claims.UserID)
+	if err != nil || user == nil {
+		return nil, errors.New("usuário não encontrado")
+	}
+	if user.Status != domain.UserStatusActive {
+		return nil, errors.New("usuário inativo")
+	}
+	if user.LockedUntil != nil && user.LockedUntil.After(time.Now()) {
+		return nil, errors.New("usuário bloqueado")
+	}
+
+	// 5. Validar se a companhia está ativa
+	company, err := s.companyRepo.FindByID(claims.CompanyID)
+	if err != nil || company == nil || company.Status != domain.CompanyStatusActive {
+		return nil, errors.New("companhia inválida ou inativa")
+	}
+
+	// 6. Inserir o refresh token antigo na blacklist (Refresh Token Rotation)
+	ttl := time.Until(claims.ExpiresAt.Time)
+	if ttl <= 0 {
+		ttl = 1 * time.Minute
+	}
+	_ = s.blacklistRepo.Add(ctx, refreshTokenStr, ttl)
+
+	// 7. Gerar novo par de tokens preservando keep_me_logged_in
+	keepMeLoggedIn := claims.KeepMeLoggedIn
+	if !keepMeLoggedIn && claims.ExpiresAt.Time.Sub(claims.IssuedAt.Time) > 1*time.Hour {
+		keepMeLoggedIn = true
+	}
+
+	tokens, err := utils.GenerateTokenPair(user.ID, company.ID, keepMeLoggedIn)
+	if err != nil {
+		return nil, err
+	}
+
+	return tokens, nil
+}

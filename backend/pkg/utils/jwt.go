@@ -8,7 +8,12 @@ import (
 	"github.com/google/uuid"
 )
 
-var jwtSecret = []byte("my-secret-key-change-in-prod") // Should be from env
+var (
+	jwtSecret               = []byte("my-secret-key-change-in-prod") // Should be from env
+	accessTokenDuration     = 30 * time.Minute
+	refreshTokenDuration    = 30 * time.Minute
+	extendedRefreshDuration = 7 * 24 * time.Hour
+)
 
 type TokenPair struct {
 	AccessToken  string `json:"access_token"`
@@ -16,19 +21,22 @@ type TokenPair struct {
 }
 
 type Claims struct {
-	UserID    uuid.UUID `json:"user_id"`
-	CompanyID uuid.UUID `json:"company_id"`
-	TokenType string    `json:"token_type"`
+	UserID         uuid.UUID `json:"user_id"`
+	CompanyID      uuid.UUID `json:"company_id"`
+	TokenType      string    `json:"token_type"`
+	KeepMeLoggedIn bool      `json:"keep_me_logged_in,omitempty"`
 	jwt.RegisteredClaims
 }
 
 func GenerateTokenPair(userID, companyID uuid.UUID, keepMeLoggedIn bool) (*TokenPair, error) {
 	accessClaims := Claims{
-		UserID:    userID,
-		CompanyID: companyID,
-		TokenType: "access",
+		UserID:         userID,
+		CompanyID:      companyID,
+		TokenType:      "access",
+		KeepMeLoggedIn: keepMeLoggedIn,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(30 * time.Minute)),
+			ID:        uuid.New().String(),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(accessTokenDuration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
@@ -38,16 +46,18 @@ func GenerateTokenPair(userID, companyID uuid.UUID, keepMeLoggedIn bool) (*Token
 		return nil, err
 	}
 
-	refreshDuration := 30 * time.Minute
+	refreshDuration := refreshTokenDuration
 	if keepMeLoggedIn {
-		refreshDuration = 7 * 24 * time.Hour
+		refreshDuration = extendedRefreshDuration
 	}
 
 	refreshClaims := Claims{
-		UserID:    userID,
-		CompanyID: companyID,
-		TokenType: "refresh",
+		UserID:         userID,
+		CompanyID:      companyID,
+		TokenType:      "refresh",
+		KeepMeLoggedIn: keepMeLoggedIn,
 		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        uuid.New().String(),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(refreshDuration)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
@@ -79,4 +89,16 @@ func ValidateToken(tokenString string) (*Claims, error) {
 
 func SetJWTSecret(secret string) {
 	jwtSecret = []byte(secret)
+}
+
+func SetTokenDurations(access, refresh, extended time.Duration) {
+	if access > 0 {
+		accessTokenDuration = access
+	}
+	if refresh > 0 {
+		refreshTokenDuration = refresh
+	}
+	if extended > 0 {
+		extendedRefreshDuration = extended
+	}
 }

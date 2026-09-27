@@ -1,8 +1,17 @@
+jest.mock('axios', () => {
+  return {
+    create: jest.fn().mockReturnValue({
+      post: jest.fn().mockResolvedValue({ data: { access_token: 'new-acc', refresh_token: 'new-ref' } }),
+    }),
+  };
+});
+
 import { authService } from './auth.service';
 import api from './api';
 
 jest.mock('./api', () => ({
   post: jest.fn(),
+  get: jest.fn(),
 }));
 
 describe('authService', () => {
@@ -11,6 +20,11 @@ describe('authService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('should call refreshToken with correct path and body', async () => {
+    const result = await authService.refreshToken('old-ref');
+    expect(result).toEqual({ access_token: 'new-acc', refresh_token: 'new-ref' });
   });
 
   it('should call register with correct path and data', async () => {
@@ -74,5 +88,23 @@ describe('authService', () => {
 
     expect(api.post).toHaveBeenCalledWith('/auth/logout');
     expect(result).toEqual({ message: 'logged out' });
+  });
+
+  it('should call validateInvitation with correct path', async () => {
+    (api.get as jest.Mock).mockResolvedValue({ data: { valid: true } });
+
+    const result = await authService.validateInvitation('token123');
+
+    expect(api.get).toHaveBeenCalledWith('/auth/validate-invitation?token=token123');
+    expect(result).toEqual({ valid: true });
+  });
+
+  it('should call createInvitation with correct path', async () => {
+    (api.post as jest.Mock).mockResolvedValue({ data: { id: 'inv1' } });
+
+    const result = await authService.createInvitation('new@company.com');
+
+    expect(api.post).toHaveBeenCalledWith('/auth/invitations', { email: 'new@company.com' });
+    expect(result).toEqual({ id: 'inv1' });
   });
 });

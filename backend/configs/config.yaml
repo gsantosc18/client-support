@@ -6,3 +6,6 @@ redis:
   url: "localhost:6379"
 jwt:
   secret: "my-secret-key-change-in-prod"
+  access_expiration: "30m"
+  refresh_expiration: "30m"
+  refresh_extended_expiration: "168h"

@@ -61,6 +61,22 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	return c.JSON(tokens)
 }
 
+func (h *AuthHandler) RefreshToken(c *fiber.Ctx) error {
+	var req struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+	if err := c.BodyParser(&req); err != nil || req.RefreshToken == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "refresh_token obrigatório"})
+	}
+
+	tokens, err := h.authService.RefreshToken(c.Context(), req.RefreshToken)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(tokens)
+}
+
 func (h *AuthHandler) RecoverPassword(c *fiber.Ctx) error {
 	var req struct {
 		Email     string `json:"email"`

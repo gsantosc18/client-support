@@ -29,7 +29,10 @@ type RedisConfig struct {
 }
 
 type JWTConfig struct {
-	Secret string `mapstructure:"secret"`
+	Secret                    string `mapstructure:"secret"`
+	AccessExpiration          string `mapstructure:"access_expiration"`
+	RefreshExpiration         string `mapstructure:"refresh_expiration"`
+	RefreshExtendedExpiration string `mapstructure:"refresh_extended_expiration"`
 }
 
 func Load() (*Config, error) {
@@ -46,6 +49,9 @@ func Load() (*Config, error) {
 	_ = viper.BindEnv("database.url", "DATABASE_URL")
 	_ = viper.BindEnv("redis.url", "REDIS_URL")
 	_ = viper.BindEnv("jwt.secret", "JWT_SECRET")
+	_ = viper.BindEnv("jwt.access_expiration", "JWT_ACCESS_TOKEN_EXPIRATION")
+	_ = viper.BindEnv("jwt.refresh_expiration", "JWT_REFRESH_TOKEN_EXPIRATION")
+	_ = viper.BindEnv("jwt.refresh_extended_expiration", "JWT_REFRESH_TOKEN_EXTENDED_EXPIRATION")
 	_ = viper.BindEnv("company_id", "COMPANY_ID")
 	_ = viper.BindEnv("access_code", "REGISTRATION_ACCESS_CODE")
 	_ = viper.BindEnv("invitation_duration", "INVITATION_DURATION")
@@ -68,6 +74,15 @@ func Load() (*Config, error) {
 	}
 	if cfg.InvitationDuration == "" {
 		cfg.InvitationDuration = "24h"
+	}
+	if cfg.JWT.AccessExpiration == "" {
+		cfg.JWT.AccessExpiration = "30m"
+	}
+	if cfg.JWT.RefreshExpiration == "" {
+		cfg.JWT.RefreshExpiration = "30m"
+	}
+	if cfg.JWT.RefreshExtendedExpiration == "" {
+		cfg.JWT.RefreshExtendedExpiration = "168h"
 	}
 
 	return &cfg, nil
