@@ -37,6 +37,9 @@ services:
       - storage:/app/storage
     ports:
       - "8080:8080"
+    networks:
+      - default
+      - dev-infra
     deploy:
       replicas: 2
       update_config:
@@ -53,6 +56,9 @@ services:
     image: registry.advocase.online/client-support/app:latest
     ports:
       - "3000:3000"
+    networks:
+      - default
+      - dev-infra
     deploy:
       replicas: 2
       update_config:
@@ -69,3 +75,8 @@ volumes:
   mariadbdata:
   redisdata:
   storage:
+
+networks:
+  default:
+  dev-infra:
+    external: true
