@@ -80,6 +80,22 @@ jobs:
     needs: [build-backend, build-frontend]
     environment: dev
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Prepare stack file for deployment
+        run: cp docker-stack.yml client-suport.yaml
+
+      - name: Copy stack file to VPS via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          source: "client-suport.yaml"
+          target: "/root/workdir"
+
       - name: Deploy to Docker Swarm via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:

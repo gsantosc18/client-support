@@ -27,7 +27,7 @@ services:
         condition: on-failure
 
   backend:
-    image: registry.advocase.site/client-support/backend:latest
+    image: registry.advocase.online/client-support/backend:latest
     environment:
       - DATABASE_URL=root:rootpassword@tcp(db:3306)/client_support?charset=utf8mb4&parseTime=True&loc=Local
       - REDIS_URL=redis:6379
@@ -50,7 +50,7 @@ services:
         condition: on-failure
 
   app:
-    image: registry.advocase.site/client-support/app:latest
+    image: registry.advocase.online/client-support/app:latest
     ports:
       - "3000:3000"
     deploy:
