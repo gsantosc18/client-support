@@ -4,7 +4,7 @@ services:
   db:
     image: mariadb:10.11
     environment:
-      MARIADB_ROOT_PASSWORD: rootpassword # Em produção, recomenda-se utilizar Docker Secrets
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MARIADB_DATABASE: client_support
     volumes:
       - mariadbdata:/var/lib/mysql
@@ -29,7 +29,7 @@ services:
   backend:
     image: registry.advocase.online/client-support/backend:latest
     environment:
-      - DATABASE_URL=root:rootpassword@tcp(db:3306)/client_support?charset=utf8mb4&parseTime=True&loc=Local
+      - DATABASE_URL=root:${DB_ROOT_PASSWORD}@tcp(db:3306)/client_support?charset=utf8mb4&parseTime=True&loc=Local
       - REDIS_URL=redis:6379
       - LOCAL_STORAGE_PATH=/app/storage
       - USE_S3=false

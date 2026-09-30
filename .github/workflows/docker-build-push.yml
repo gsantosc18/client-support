@@ -84,7 +84,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Prepare stack file for deployment
-        run: cp docker-stack.yml client-suport.yaml
+        env:
+          DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+        run: |
+          envsubst '${DB_ROOT_PASSWORD}' < docker-stack.yml > client-suport.yaml
 
       - name: Copy stack file to VPS via SCP
         uses: appleboy/scp-action@v0.1.7
