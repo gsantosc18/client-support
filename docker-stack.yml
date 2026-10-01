@@ -4,8 +4,10 @@ services:
   db:
     image: mariadb:10.11
     environment:
-      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_RANDOM_ROOT_PASSWORD: "true"
       MARIADB_DATABASE: client_support
+      MARIADB_USER: client_support_user
+      MARIADB_PASSWORD: ${DB_PASSWORD}
     volumes:
       - mariadbdata:/var/lib/mysql
     deploy:
@@ -29,7 +31,7 @@ services:
   backend:
     image: registry.advocase.online/client-support/backend:latest
     environment:
-      - DATABASE_URL=root:${DB_ROOT_PASSWORD}@tcp(db:3306)/client_support?charset=utf8mb4&parseTime=True&loc=Local
+      - DATABASE_URL=client_support_user:${DB_PASSWORD}@tcp(db:3306)/client_support?charset=utf8mb4&parseTime=True&loc=Local
       - REDIS_URL=redis:6379
       - LOCAL_STORAGE_PATH=/app/storage
       - USE_S3=false
