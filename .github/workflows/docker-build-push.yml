@@ -22,7 +22,7 @@ jobs:
       - name: Log in to private registry
         uses: docker/login-action@v2
         with:
-          registry: registry.advocase.online
+          registry: ${{ vars.DOCKER_REGISTRY }}
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
@@ -33,8 +33,8 @@ jobs:
           file: ./backend/Dockerfile
           push: true
           tags: |
-            registry.advocase.online/client-support/backend:${{ github.event.release.tag_name }}
-            registry.advocase.online/client-support/backend:latest
+            ${{ vars.DOCKER_REGISTRY }}/client-support/backend:${{ github.event.release.tag_name }}
+            ${{ vars.DOCKER_REGISTRY }}/client-support/backend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -55,7 +55,7 @@ jobs:
       - name: Log in to private registry
         uses: docker/login-action@v2
         with:
-          registry: registry.advocase.online
+          registry: ${{ vars.DOCKER_REGISTRY }}
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
@@ -69,8 +69,8 @@ jobs:
             BACKEND_URL=${{ vars.BACKEND_URL }}
             NEXT_PUBLIC_COMPANY_ID=${{ vars.NEXT_PUBLIC_COMPANY_ID }}
           tags: |
-            registry.advocase.online/client-support/app:${{ github.event.release.tag_name }}
-            registry.advocase.online/client-support/app:latest
+            ${{ vars.DOCKER_REGISTRY }}/client-support/app:${{ github.event.release.tag_name }}
+            ${{ vars.DOCKER_REGISTRY }}/client-support/app:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -85,9 +85,9 @@ jobs:
 
       - name: Prepare stack file for deployment
         env:
-          DB_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
-          envsubst '${DB_ROOT_PASSWORD}' < docker-stack.yml > client-suport.yaml
+          envsubst '${DB_PASSWORD}' < docker-stack.yml > client-suport.yaml
 
       - name: Copy stack file to VPS via SCP
         uses: appleboy/scp-action@v0.1.7
